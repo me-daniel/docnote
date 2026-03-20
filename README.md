@@ -1,2 +1,2 @@
 # docnote
-dcotor translater
+doctor talk translator
