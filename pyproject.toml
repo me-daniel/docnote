@@ -1,0 +1,12 @@
+[project]
+name = "docnote"
+version = "0.1.0"
+description = "Healthcare translation suite (Flask)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.0.0,<4",
+]
+
+[tool.uv]
+package = false

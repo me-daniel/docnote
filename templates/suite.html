@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Healthcare Translation Suite — DocNote</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --doc:#16213e;--da:#5b9cf6;--dg:#52c48a;--dw:#f4a261;--dt:#e8e4de;--dm:rgba(232,228,222,0.4);--db:rgba(255,255,255,0.08);
+  --pat:#fdfcf9;--pa:#e07b54;--pt:#1c1917;--pm:#8a8480;--pb:rgba(0,0,0,0.07);
+  --an:#0d1520;--an2:#111e2e;--aa:#a78bfa;--at:#d4d0ca;--am:rgba(212,208,202,0.38);--ab:rgba(255,255,255,0.06);
+  --r:10px;--rs:6px;
+  --deft:#e07b54;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'DM Sans',sans-serif}
+body{background:#0d1117;overflow:hidden;display:flex;flex-direction:column}
+
+nav{background:var(--doc);height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--db);flex-shrink:0;z-index:200}
+.nav-logo{display:flex;align-items:center;gap:8px;color:var(--dt)}
+.nav-mark{width:24px;height:24px;background:var(--da);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;line-height:1;text-align:center;padding:2px}
+.nav-name{font-family:'Fraunces',serif;font-size:16px;letter-spacing:-.3px}
+.nav-sub{font-size:9px;color:var(--dm);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{background:transparent;border:none;color:rgba(232,228,222,.45);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:6px 13px;border-radius:6px;cursor:pointer;transition:all .15s}
+.nav-tab:hover{color:var(--dt);background:rgba(255,255,255,.05)}
+.nav-tab.active{color:var(--da);background:rgba(91,156,246,.12)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.live{width:6px;height:6px;background:var(--dg);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(82,196,138,.4)}50%{box-shadow:0 0 0 4px rgba(82,196,138,0)}}
+.badge-demo{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--aa);border:1px solid rgba(167,139,250,.25);padding:3px 8px;border-radius:999px;background:rgba(167,139,250,.08)}
+
+.view{display:none;flex:1;overflow:hidden}
+.view.active{display:flex}
+
+/* ─── CLINICIAN ─── */
+#clinicianView{background:var(--doc)}
+.w-grid{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%}
+.w-col{display:flex;flex-direction:column;height:100%;overflow-y:auto;padding:20px;gap:14px}
+.w-col::-webkit-scrollbar{width:3px}
+.w-col::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.w-col+.w-col{border-left:1px solid var(--db)}
+.col-role{font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--da);margin-bottom:2px}
+.col-title{font-family:'Fraunces',serif;font-size:17px;letter-spacing:-.3px;color:var(--dt)}
+.lbl{font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--dm);margin-bottom:5px}
+textarea.doc-ta{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--db);border-radius:var(--rs);color:var(--dt);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.65;padding:10px 12px;resize:vertical;min-height:160px;outline:none;transition:border-color .2s}
+textarea.doc-ta:focus{border-color:rgba(91,156,246,.45);background:rgba(255,255,255,.06)}
+textarea.doc-ta::placeholder{color:rgba(232,228,222,.18)}
+.map-pane{background:rgba(255,255,255,.03);border:1px solid var(--db);border-radius:var(--rs);padding:11px 12px;min-height:120px;font-size:13px;line-height:1.75;color:rgba(232,228,222,.9);display:none}
+.map-pane.visible{display:block}
+.map-pane .map-h{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dm);margin-bottom:8px}
+.term-map{cursor:crosshair;border-bottom:1px dashed rgba(91,156,246,.35);transition:background .15s,color .15s}
+.term-map:hover,.term-map.active-map{background:rgba(91,156,246,.2);color:#fff;border-bottom-color:var(--da)}
+.pane-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:900px){.pane-row{grid-template-columns:1fr}}
+
+.sl-wrap{padding:2px 0 6px}
+.sl-steps{display:flex;gap:6px;margin-bottom:8px}
+.sl-step{flex:1;text-align:center;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:8px 6px;border-radius:var(--rs);border:1px solid var(--db);color:var(--dm);cursor:pointer;background:rgba(255,255,255,.02);transition:all .15s}
+.sl-step:hover{color:var(--dt);border-color:rgba(255,255,255,.15)}
+.sl-step.on{color:var(--da);border-color:rgba(91,156,246,.45);background:rgba(91,156,246,.1)}
+.sl-cur{font-size:11px;font-weight:600;color:var(--da);text-align:center;margin-top:4px}
+
+.btn{border:none;border-radius:var(--rs);padding:8px 15px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;letter-spacing:.02em}
+.b-blue{background:var(--da);color:#fff}.b-blue:hover{background:#6fa8ff;transform:translateY(-1px)}.b-blue:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.b-ghost{background:transparent;color:rgba(232,228,222,.5);border:1px solid var(--db)}.b-ghost:hover{border-color:rgba(255,255,255,.2);color:var(--dt)}
+.b-green{background:var(--dg);color:#fff;flex:1}.b-green:hover{background:#5fd49a;transform:translateY(-1px)}.b-green:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.b-row{display:flex;gap:7px;flex-wrap:wrap}
+
+.ld{display:flex;gap:4px;align-items:center;padding:7px 0}
+.ld span{width:5px;height:5px;background:var(--da);border-radius:50%;animation:ld 1.2s ease-in-out infinite}
+.ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}
+@keyframes ld{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}
+.ld-h{font-size:10px;color:var(--dm);margin-top:2px}
+
+.bert-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bert-card{background:rgba(255,255,255,.04);border:1px solid var(--db);border-radius:var(--rs);padding:10px 11px}
+.bert-l{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dm);margin-bottom:4px}
+.bert-v{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:var(--dt)}
+.bert-v.good{color:var(--dg)}.bert-v.warn{color:var(--dw)}.bert-v.bad{color:#ff6b6b}
+.bert-sub{font-size:9px;color:var(--dm);margin-top:4px;line-height:1.35}
+.bert-banner{font-size:9px;color:rgba(167,139,250,.95);margin-top:8px;line-height:1.4;padding:8px 10px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.18);border-radius:var(--rs)}
+.sim-card{border-radius:var(--rs);padding:10px 12px;border:1px solid;transition:all .3s}
+.sim-card.checking{background:rgba(91,156,246,.06);border-color:rgba(91,156,246,.2)}
+.sim-card.pass{background:rgba(82,196,138,.07);border-color:rgba(82,196,138,.25)}
+.sim-card.caution{background:rgba(244,162,97,.08);border-color:rgba(244,162,97,.28)}
+.sim-card.fail{background:rgba(224,60,60,.08);border-color:rgba(224,60,60,.28)}
+.spin-w{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--da)}
+.spinner{width:11px;height:11px;border:2px solid rgba(91,156,246,.2);border-top-color:var(--da);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sep{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dm);display:flex;align-items:center;gap:6px;margin:4px 0}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:var(--db)}
+.ok-banner{background:rgba(82,196,138,.12);border:1px solid rgba(82,196,138,.22);border-radius:var(--rs);padding:7px 11px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dg);font-weight:500}
+
+/* ─── PATIENT ─── */
+#patientView{background:var(--pat);flex-direction:column}
+.pat-top{background:#fff;border-bottom:1px solid var(--pb);padding:11px 22px;display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:12px}
+.pat-greet{font-family:'Fraunces',serif;font-size:16px;color:var(--pt);letter-spacing:-.2px}
+.pat-sub{font-size:11px;color:var(--pm);margin-top:1px;max-width:520px;line-height:1.45}
+.ver-toggle{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.04);border:1px solid var(--pb);border-radius:999px;padding:4px 4px 4px 12px}
+.ver-toggle span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--pm)}
+.toggle-track{position:relative;width:200px;height:32px;background:rgba(0,0,0,.06);border-radius:999px}
+.toggle-track>input{position:absolute;opacity:0;width:50%;height:100%;margin:0;cursor:pointer;z-index:2}
+#verOrig{left:0}
+#verSimp{left:50%}
+.toggle-ui{position:absolute;inset:3px;display:grid;grid-template-columns:1fr 1fr;gap:4px;pointer-events:none}
+.toggle-knob{position:absolute;top:3px;left:3px;width:calc(50% - 5px);height:calc(100% - 6px);background:#fff;border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,.12);transition:left .22s ease;z-index:0}
+#verOrig:checked ~ .toggle-ui .toggle-knob{left:3px}
+#verSimp:checked ~ .toggle-ui .toggle-knob{left:calc(50% + 2px)}
+.toggle-opt{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--pm);pointer-events:none;height:100%;border-radius:999px}
+#verOrig:checked ~ .toggle-ui label[for="verOrig"],#verSimp:checked ~ .toggle-ui label[for="verSimp"]{color:var(--pa)}
+.pat-body{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px;max-width:720px;margin:0 auto;width:100%}
+.pat-body::-webkit-scrollbar{width:3px}
+.pat-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.08);border-radius:2px}
+.text-card{background:#fff;border:1px solid var(--pb);border-radius:var(--r);padding:20px 22px;line-height:1.9;font-size:17px;color:var(--pt);box-shadow:0 1px 10px rgba(0,0,0,.05);min-height:160px;font-family:Georgia,serif}
+.ws{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;gap:8px;color:var(--pm);text-align:center}
+.wi{font-size:24px;opacity:.3}.wt{font-size:12px;line-height:1.5;max-width:320px}
+
+.deft-term{border-bottom:2px solid rgba(224,123,84,.55);cursor:help;position:relative;background:rgba(224,123,84,.06);padding:0 2px;border-radius:2px}
+.deft-term:hover,.deft-term.deft-open{background:rgba(224,123,84,.14)}
+.deft-pop{position:absolute;left:0;bottom:100%;margin-bottom:6px;min-width:220px;max-width:min(340px,92vw);background:#1c1917;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;line-height:1.5;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:60;display:none}
+.deft-pop::after{content:'';position:absolute;top:100%;left:16px;border:6px solid transparent;border-top-color:#1c1917}
+.deft-term.deft-open .deft-pop{display:block}
+.deft-bottleneck{animation:fadeHelp .5s ease}
+@keyframes fadeHelp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.eye-panel{background:rgba(224,123,84,.06);border:1px solid rgba(224,123,84,.2);border-radius:var(--rs);padding:12px 14px}
+.eye-t{font-size:11px;font-weight:700;color:var(--pt);margin-bottom:6px}
+.eye-d{font-size:11px;color:var(--pm);line-height:1.55;margin-bottom:10px}
+.eye-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.eye-row video{width:120px;height:90px;background:#000;border-radius:6px;object-fit:cover}
+.eye-status{font-size:10px;color:var(--pa);font-weight:600}
+.pat-foot{font-size:10px;color:var(--pm);line-height:1.55;padding:10px 12px;border-radius:var(--rs);background:rgba(0,0,0,.03);border:1px solid var(--pb)}
+
+/* ─── PIPELINE ─── */
+#pipelineView{background:var(--an);flex-direction:column}
+.pipe-top{background:var(--an2);border-bottom:1px solid var(--ab);padding:14px 22px}
+.pipe-t{font-family:'Fraunces',serif;font-size:15px;color:var(--at)}
+.pipe-sub{font-size:11px;color:var(--am);margin-top:4px;max-width:640px;line-height:1.5}
+.pipe-body{flex:1;overflow-y:auto;padding:20px 22px}
+.pipe-steps{display:flex;flex-direction:column;gap:0;max-width:640px;margin:0 auto}
+.pipe-step{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--ab)}
+.pipe-n{width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);color:var(--aa);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pipe-h{font-size:13px;font-weight:600;color:var(--at);margin-bottom:4px}
+.pipe-p{font-size:11px;color:var(--am);line-height:1.55}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div>
+      <div class="nav-mark">DN</div>
+      <div class="nav-sub">Dual-interface suite</div>
+    </div>
+    <div>
+      <div class="nav-name">DocNote</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button type="button" class="nav-tab active" data-go="clinician">Clinician</button>
+    <button type="button" class="nav-tab" data-go="patient">Patient</button>
+    <button type="button" class="nav-tab" data-go="pipeline">Pipeline</button>
+  </div>
+  <div class="nav-right">
+    <div class="live" title="Demo session"></div>
+    <span class="badge-demo">Concept UI</span>
+  </div>
+</nav>
+
+<!-- CLINICIAN -->
+<div class="view active" id="clinicianView">
+  <div class="w-grid">
+    <div class="w-col">
+      <div>
+        <div class="col-role">Clinician — source</div>
+        <div class="col-title">Original clinical note</div>
+      </div>
+      <div>
+        <div class="lbl">Clinical text</div>
+        <textarea class="doc-ta" id="medIn" placeholder="Paste or type the clinical note…&#10;&#10;Example: COPD exacerbation with treatment and follow-up."></textarea>
+      </div>
+      <div>
+        <div class="lbl">Simplify target (complexity)</div>
+        <div class="sl-wrap">
+          <div class="sl-steps" id="slSteps">
+            <button type="button" class="sl-step" data-val="1">High — Professional</button>
+            <button type="button" class="sl-step on" data-val="2">Normal — Standard</button>
+            <button type="button" class="sl-step" data-val="3">Simple — Plain</button>
+          </div>
+          <div class="sl-cur" id="slCur">Normal — Standard: translate jargon into everyday language while keeping structure clear.</div>
+        </div>
+      </div>
+      <div class="b-row">
+        <button type="button" class="btn b-blue" id="genBtn">Generate patient draft</button>
+        <button type="button" class="btn b-ghost" id="loadEx">Load example</button>
+      </div>
+      <div class="map-pane" id="origMapPane">
+        <div class="map-h">Interactive map — hover terms (links to simplified wording)</div>
+        <div id="origMapped"></div>
+      </div>
+    </div>
+    <div class="w-col">
+      <div>
+        <div class="col-role">Draft — verify &amp; edit</div>
+        <div class="col-title">Patient-friendly version</div>
+      </div>
+      <div>
+        <div class="lbl">Editable translation</div>
+        <div id="genLd" style="display:none">
+          <div class="ld"><span></span><span></span><span></span></div>
+          <div class="ld-h">Applying rules + DEFT-style substitutions (demo). Hook your LLM here.</div>
+        </div>
+        <textarea class="doc-ta" id="simpTa" style="min-height:200px;display:none" placeholder="Generated text appears here — edit before approval…"></textarea>
+        <div class="map-pane" id="simpMapPane">
+          <div class="map-h">Mapped preview (read-only) — hover pairs with the left column</div>
+          <div id="simpMapped"></div>
+        </div>
+      </div>
+      <div id="bertSec" style="display:none">
+        <div class="lbl">ClinicalBERT-style verification (demo scores)</div>
+        <div class="sim-card checking" id="bertCard">
+          <div class="spin-w" id="bertSpin"><div class="spinner"></div>Running semantic check…</div>
+          <div id="bertRes" style="display:none">
+            <div class="bert-grid">
+              <div class="bert-card">
+                <div class="bert-l">Overall match</div>
+                <div class="bert-v" id="scOverall">—</div>
+                <div class="bert-sub">Meaning preserved vs. original (embedding proxy in production).</div>
+              </div>
+              <div class="bert-card">
+                <div class="bert-l">Fact preservation</div>
+                <div class="bert-v" id="scFact">—</div>
+                <div class="bert-sub">Guards against dropped doses, timelines, and instructions.</div>
+              </div>
+              <div class="bert-card">
+                <div class="bert-l">Reading level</div>
+                <div class="bert-v" id="scRead" style="font-size:14px;line-height:1.25">—</div>
+                <div class="bert-sub">Estimated from draft length &amp; syllable proxy.</div>
+              </div>
+            </div>
+            <div class="bert-banner" id="bertNote"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sep">publish</div>
+      <div class="b-row" id="appRow" style="display:none">
+        <button type="button" class="btn b-green" id="appBtn">Approve &amp; publish</button>
+        <button type="button" class="btn b-ghost" id="togEditBtn" title="Toggle mapped preview">Preview map</button>
+      </div>
+      <div id="appBanner" style="display:none"><div class="ok-banner">Published to patient view — switch tabs to read as the patient.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PATIENT -->
+<div class="view" id="patientView">
+  <div class="pat-top">
+    <div>
+      <div class="pat-greet">Your visit summary</div>
+      <div class="pat-sub">Toggle between the professional note (for your records) and the simplified version. Underlined terms include plain-language definitions from the DEFT corpus (demo glossary).</div>
+    </div>
+    <div class="ver-toggle">
+      <span>Version</span>
+      <div class="toggle-track" role="group" aria-label="Note version">
+        <input type="radio" name="ver" id="verOrig" checked>
+        <input type="radio" name="ver" id="verSimp">
+        <div class="toggle-ui">
+          <span class="toggle-knob" aria-hidden="true"></span>
+          <label class="toggle-opt" for="verOrig">Original</label>
+          <label class="toggle-opt" for="verSimp">Simplified</label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pat-body">
+    <div class="text-card" id="patCard">
+      <div class="ws" id="patEmpty"><div class="wi">📋</div><div class="wt">Nothing published yet. Approve a note in the Clinician view.</div></div>
+      <div id="patContent" style="display:none"></div>
+    </div>
+    <div class="eye-panel">
+      <div class="eye-t">Optional reading assistant (eye-tracking concept)</div>
+      <div class="eye-d">If you allow the camera, the UI can use gaze or dwell-time heuristics to spot “stuck” words. This demo uses <strong>mouse dwell</strong> on underlined terms and mirrors a webcam preview only (no model shipped).</div>
+      <div class="eye-row">
+        <button type="button" class="btn b-ghost" id="camBtn" style="border-color:var(--pb);color:var(--pt)">Enable camera preview</button>
+        <video id="camPrev" playsinline muted autoplay style="display:none"></video>
+        <span class="eye-status" id="dwellStatus"></span>
+      </div>
+    </div>
+    <div class="pat-foot">Underlined words are linked to the DEFT glossary. Long hover (or focus) triggers help; with the assistant on, dwelling on a hard term auto-opens the definition.</div>
+  </div>
+</div>
+
+<!-- PIPELINE -->
+<div class="view" id="pipelineView">
+  <div class="pipe-top">
+    <div class="pipe-t">Technical execution pipeline</div>
+    <div class="pipe-sub">End-to-end flow from clinical authoring to patient comprehension. Flask serves this concept; swap demo endpoints for LLM, ClinicalBERT (<code style="font-size:10px">medicalai/ClinicalBERT</code>), and DEFT-backed retrieval.</div>
+  </div>
+  <div class="pipe-body">
+    <div class="pipe-steps">
+      <div class="pipe-step"><div class="pipe-n">1</div><div><div class="pipe-h">Input</div><p class="pipe-p">Clinician provides the clinical note and chooses complexity (Professional / Standard / Plain).</p></div></div>
+      <div class="pipe-step"><div class="pipe-n">2</div><div><div class="pipe-h">Generation</div><p class="pipe-p">LLM rewrites the note to the target reading level; DEFT mappings inform substitutions.</p></div></div>
+      <div class="pipe-step"><div class="pipe-n">3</div><div><div class="pipe-h">Verification</div><p class="pipe-p">ClinicalBERT (or equivalent) scores semantic match and fact preservation before sign-off.</p></div></div>
+      <div class="pipe-step"><div class="pipe-n">4</div><div><div class="pipe-h">Doctor review</div><p class="pipe-p">Interactive term mapping supports cross-checking; clinician edits and approves.</p></div></div>
+      <div class="pipe-step"><div class="pipe-n">5</div><div><div class="pipe-h">Publishing</div><p class="pipe-p">Approved simplified text is released to the patient portal alongside the original.</p></div></div>
+      <div class="pipe-step"><div class="pipe-n">6</div><div><div class="pipe-h">Reading</div><p class="pipe-p">Patient toggles versions, uses DEFT tooltips, and optionally enables dwell- or gaze-based assistance.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.DEFT_TERMS = {{ deft_terms | tojson }};
+
+const SL_COPY = {
+  1: { title: 'High — Professional', body: 'Polishes formatting; keeps clinical terminology intact.' },
+  2: { title: 'Normal — Standard', body: 'Translates jargon into common language (e.g. “MI” → heart attack).' },
+  3: { title: 'Simple — Plain', body: 'Short sentences, basic vocabulary, brief explanations.' }
+};
+
+let complexity = 2;
+let publishedOriginal = '';
+let publishedSimplified = '';
+let mapMode = false;
+
+function go(v) {
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+  document.getElementById(v + 'View').classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => { if (t.dataset.go === v) t.classList.add('active'); });
+  if (v === 'patient') renderPatient();
+}
+
+document.querySelectorAll('.nav-tab').forEach(t => t.addEventListener('click', () => go(t.dataset.go)));
+
+document.querySelectorAll('.sl-step').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sl-step').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    complexity = parseInt(btn.dataset.val, 10);
+    const c = SL_COPY[complexity];
+    document.getElementById('slCur').textContent = c.title + ': ' + c.body;
+  });
+});
+
+document.getElementById('loadEx').addEventListener('click', () => {
+  document.getElementById('medIn').value = `The patient is a 67-year-old male presenting with acute exacerbation of chronic obstructive pulmonary disease (COPD). Spirometry indicates a post-bronchodilator FEV1/FVC ratio of 0.65, consistent with moderate obstructive ventilatory defect. Initiate short-acting beta-2 agonist (salbutamol 2.5mg via nebulization q4h), systemic corticosteroids (prednisolone 40mg PO OD x 5 days), and empiric antibiotic therapy with amoxicillin-clavulanate 875/125mg PO BID for suspected bacterial exacerbation. Monitor SpO2, target 88–92%. Arrange pulmonology follow-up in 2 weeks post-discharge.`;
+});
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function wrapTerms(htmlPlain, asPatient = false) {
+  const keys = Object.keys(window.DEFT_TERMS || {}).sort((a, b) => b.length - a.length);
+  let s = escapeHtml(htmlPlain);
+  keys.forEach((key) => {
+    const id = 't_' + key.replace(/\s+/g, '_');
+    const re = new RegExp('\\b(' + key.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&') + ')\\b', 'gi');
+    s = s.replace(re, (m) => {
+      if (asPatient) {
+        const def = window.DEFT_TERMS[key.toLowerCase()] || '';
+        return '<span class="deft-term" tabindex="0" data-term="' + key.toLowerCase() + '">' + m + '<span class="deft-pop">' + escapeHtml(def) + '</span></span>';
+      }
+      return '<span class="term-map" data-map="' + id + '">' + m + '</span>';
+    });
+  });
+  return s;
+}
+
+function clearMapHighlights() {
+  document.querySelectorAll('.term-map.active-map').forEach(el => el.classList.remove('active-map'));
+}
+
+function wireMapping() {
+  document.querySelectorAll('.term-map').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      clearMapHighlights();
+      const id = el.getAttribute('data-map');
+      document.querySelectorAll('.term-map[data-map="' + id + '"]').forEach(x => x.classList.add('active-map'));
+    });
+    el.addEventListener('mouseleave', () => clearMapHighlights());
+  });
+}
+
+document.getElementById('genBtn').addEventListener('click', async () => {
+  const txt = document.getElementById('medIn').value.trim();
+  if (!txt) { alert('Enter clinical text first.'); return; }
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  document.getElementById('genLd').style.display = 'block';
+  document.getElementById('simpTa').style.display = 'none';
+  document.getElementById('bertSec').style.display = 'none';
+  document.getElementById('appRow').style.display = 'none';
+  document.getElementById('appBanner').style.display = 'none';
+  document.getElementById('simpMapPane').classList.remove('visible');
+
+  try {
+    const r = await fetch('/api/demo-simplify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: txt, complexity })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Generate failed');
+    document.getElementById('simpTa').value = d.simplified;
+    document.getElementById('simpTa').style.display = 'block';
+    document.getElementById('genLd').style.display = 'none';
+    document.getElementById('origMapped').innerHTML = wrapTerms(txt, false);
+    document.getElementById('simpMapped').innerHTML = wrapTerms(d.simplified, false);
+    wireMapping();
+    document.getElementById('origMapPane').classList.add('visible');
+    document.getElementById('simpMapPane').classList.add('visible');
+    mapMode = true;
+    document.getElementById('bertSec').style.display = 'block';
+    await runBert(txt, d.simplified);
+    document.getElementById('appRow').style.display = 'flex';
+  } catch (e) {
+    document.getElementById('genLd').style.display = 'none';
+    document.getElementById('simpTa').style.display = 'block';
+    alert(e.message || String(e));
+  }
+  btn.disabled = false;
+});
+
+async function runBert(original, simplified) {
+  const card = document.getElementById('bertCard');
+  card.className = 'sim-card checking';
+  document.getElementById('bertSpin').style.display = 'flex';
+  document.getElementById('bertRes').style.display = 'none';
+  try {
+    const r = await fetch('/api/clinicalbert-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ original, simplified, complexity })
+    });
+    const d = await r.json();
+    document.getElementById('bertSpin').style.display = 'none';
+    document.getElementById('bertRes').style.display = 'block';
+    const o = d.overall_match_pct ?? 0;
+    const f = d.fact_preservation_pct ?? 0;
+    document.getElementById('scOverall').textContent = (d.overall_match_pct != null ? o + '%' : '—');
+    document.getElementById('scFact').textContent = (d.fact_preservation_pct != null ? f + '%' : '—');
+    document.getElementById('scRead').textContent = d.reading_level_label || '—';
+    document.getElementById('scOverall').className = 'bert-v ' + (o >= 85 ? 'good' : o >= 68 ? 'warn' : 'bad');
+    document.getElementById('scFact').className = 'bert-v ' + (f >= 85 ? 'good' : f >= 68 ? 'warn' : 'bad');
+    document.getElementById('bertNote').textContent = d.model_note || '';
+    card.className = 'sim-card ' + (o >= 85 ? 'pass' : o >= 68 ? 'caution' : 'fail');
+    const ab = document.getElementById('appBtn');
+    if (o < 68) { ab.disabled = true; ab.textContent = 'Cannot approve — review draft'; }
+    else if (o < 85) { ab.disabled = false; ab.textContent = 'Approve with caution'; ab.style.background = '#b86e1a'; }
+    else { ab.disabled = false; ab.textContent = 'Approve & publish'; ab.style.background = ''; }
+  } catch {
+    document.getElementById('bertSpin').style.display = 'none';
+    document.getElementById('bertRes').style.display = 'block';
+    document.getElementById('bertNote').textContent = 'Verification unavailable — review manually.';
+    card.className = 'sim-card caution';
+  }
+}
+
+document.getElementById('simpTa').addEventListener('input', () => {
+  const t = document.getElementById('medIn').value.trim();
+  const s = document.getElementById('simpTa').value;
+  document.getElementById('simpMapped').innerHTML = wrapTerms(s, false);
+  wireMapping();
+  if (t && s.trim()) runBert(t, s.trim());
+});
+
+document.getElementById('togEditBtn').addEventListener('click', () => {
+  mapMode = !mapMode;
+  document.getElementById('simpMapPane').classList.toggle('visible', mapMode);
+  document.getElementById('simpTa').style.display = mapMode ? 'none' : 'block';
+  document.getElementById('togEditBtn').textContent = mapMode ? 'Edit text' : 'Preview map';
+});
+
+document.getElementById('appBtn').addEventListener('click', () => {
+  const o = document.getElementById('medIn').value.trim();
+  const s = document.getElementById('simpTa').value.trim();
+  if (!s) return;
+  publishedOriginal = o;
+  publishedSimplified = s;
+  document.getElementById('appBanner').style.display = 'block';
+  document.getElementById('appRow').style.display = 'none';
+  setTimeout(() => go('patient'), 400);
+});
+
+function renderPatient() {
+  if (!publishedSimplified) {
+    document.getElementById('patEmpty').style.display = 'flex';
+    document.getElementById('patContent').style.display = 'none';
+    return;
+  }
+  document.getElementById('patEmpty').style.display = 'none';
+  document.getElementById('patContent').style.display = 'block';
+  const useOrig = document.getElementById('verOrig').checked;
+  const raw = useOrig ? publishedOriginal : publishedSimplified;
+  document.getElementById('patContent').innerHTML = wrapTerms(raw, true);
+  wirePatientTerms();
+}
+
+function wirePatientTerms() {
+  let dwellTimer = null;
+  const dwellMs = 1400;
+  const camOn = () => document.getElementById('camPrev').style.display !== 'none';
+
+  document.querySelectorAll('#patContent .deft-term').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      dwellTimer = setTimeout(() => {
+        if (camOn()) {
+          el.classList.add('deft-open', 'deft-bottleneck');
+          document.getElementById('dwellStatus').textContent = 'Assistant: opened help for “' + (el.getAttribute('data-term') || '') + '”';
+        }
+      }, dwellMs);
+    });
+    el.addEventListener('mouseleave', () => { clearTimeout(dwellTimer); el.classList.remove('deft-bottleneck'); });
+    el.addEventListener('focus', () => el.classList.add('deft-open'));
+    el.addEventListener('blur', () => el.classList.remove('deft-open'));
+  });
+}
+
+document.getElementById('verOrig').addEventListener('change', renderPatient);
+document.getElementById('verSimp').addEventListener('change', renderPatient);
+
+document.getElementById('camBtn').addEventListener('click', async () => {
+  const v = document.getElementById('camPrev');
+  if (v.srcObject) {
+    v.srcObject.getTracks().forEach(t => t.stop());
+    v.srcObject = null;
+    v.style.display = 'none';
+    document.getElementById('camBtn').textContent = 'Enable camera preview';
+    document.getElementById('dwellStatus').textContent = '';
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    v.srcObject = stream;
+    v.style.display = 'block';
+    document.getElementById('camBtn').textContent = 'Stop camera';
+    document.getElementById('dwellStatus').textContent = 'Camera on — dwell assist active for underlined terms.';
+  } catch {
+    alert('Camera permission denied or unavailable. Dwell assist still works without preview.');
+  }
+});
+</script>
+</body>
+</html>

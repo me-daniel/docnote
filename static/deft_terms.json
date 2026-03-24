@@ -1,0 +1,22 @@
+{
+  "copd": "A long-term lung disease that makes it harder to breathe. Airways become inflamed and airflow is limited.",
+  "spirometry": "A breathing test that measures how much air you can breathe in and out and how fast you can exhale.",
+  "fev1": "The amount of air you can forcefully breathe out in the first second of a breathing test.",
+  "fvc": "The total amount of air you can breathe out after taking a deep breath.",
+  "salbutamol": "A quick-relief inhaler medicine that opens the airways (often called albuterol).",
+  "nebulization": "A treatment that turns liquid medicine into a fine mist you breathe in through a mask or mouthpiece.",
+  "prednisolone": "A steroid medicine that reduces swelling and irritation in the lungs and airways.",
+  "amoxicillin": "An antibiotic used to treat bacterial infections.",
+  "exacerbation": "A sudden worsening of symptoms compared to your usual day-to-day state.",
+  "corticosteroid": "A type of medicine that calms inflammation in the body, including the lungs.",
+  "spo2": "A measure of how much oxygen is in your blood, checked with a small sensor on your finger.",
+  "pulmonology": "The medical specialty focused on lungs and breathing problems.",
+  "dyspnea": "The feeling of being short of breath or having trouble catching your breath.",
+  "myocardial infarction": "A heart attack — when blood flow to part of the heart is blocked.",
+  "hypertension": "High blood pressure — the force of blood against artery walls is higher than it should be.",
+  "mi": "Short for myocardial infarction — commonly called a heart attack.",
+  "ejection fraction": "A percentage that shows how well the heart pumps blood out with each beat.",
+  "diuretic": "A \"water pill\" that helps your body get rid of extra fluid through urine.",
+  "lisinopril": "A blood pressure medicine in the ACE inhibitor family.",
+  "furosemide": "A strong diuretic used to reduce fluid buildup, including in heart failure."
+}
