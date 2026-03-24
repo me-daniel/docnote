@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedBridge</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo"><div class="nav-mark">Mb</div><div class="nav-name">MedBridge</div></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="go('writer')">&#9997; Writer</button>
+    <button class="nav-tab" onclick="go('patient')">&#129489; Patient</button>
+    <button class="nav-tab" onclick="go('analytics')">&#9670; Analytics</button>
+  </div>
+  <div class="nav-right">
+    <div class="live"></div>
+    <select class="psel" id="psel" onchange="onPChange()"><option value="">— Select patient —</option></select>
+    <button class="btn-xs" onclick="addPt()">+ Patient</button>
+  </div>
+</nav>
+
+<!-- ══ WRITER ══ -->
+<div class="view active" id="writerView">
+  <div class="w-grid">
+    <!-- LEFT col -->
+    <div class="w-col">
+      <div><div class="col-role">&#128104;&#8205;&#9877;&#65039; Clinician — Input</div><div class="col-title">Compose Message</div></div>
+
+      <div>
+        <div class="lbl">Active patient</div>
+        <div class="profile-card" id="profileCard"><div style="font-size:11px;color:var(--dm)">Select a patient to load their profile.</div></div>
+      </div>
+
+      <!-- AI insight + predicted words -->
+      <div id="insightWrap" style="display:none">
+        <div class="ai-ins">
+          <div class="ai-ins-t">&#10022; Patient Insight <span id="insightSpin" style="display:none"><span class="spinner" style="display:inline-block;vertical-align:middle"></span></span></div>
+          <div class="ai-ins-body" id="insightText"></div>
+          <div class="pred-wrap" id="predWords"></div>
+        </div>
+      </div>
+
+      <!-- Challenging words from analytics -->
+      <div id="chalWrap" style="display:none">
+        <div class="lbl">Words this patient may find challenging</div>
+        <div class="chal-panel" id="chalPanel"></div>
+      </div>
+
+      <div>
+        <div class="lbl">Clinical notes / instructions</div>
+        <textarea id="medIn" placeholder="Enter clinical text...&#10;&#10;e.g. The patient presents with acute onset dyspnea secondary to left ventricular systolic dysfunction..."></textarea>
+      </div>
+
+      <!-- Difficulty slider with Auto mode -->
+      <div>
+        <div class="lbl" style="margin-bottom:7px">Patient reading difficulty</div>
+        <div class="sl-outer">
+          <div class="sl-mode-row">
+            <button class="sl-mode-btn sl-manual-btn active" id="manualModeBtn" onclick="setMode('manual')">Manual</button>
+            <button class="sl-mode-btn" id="autoModeBtn" onclick="setMode('auto')">&#10022; Auto from history</button>
+          </div>
+          <div class="sl-wrap" id="slWrap">
+            <div class="sl-track" style="position:relative">
+              <input type="range" class="dsl" id="dsl" min="1" max="5" value="3" step="1" oninput="updSl(this.value)">
+            </div>
+            <div class="sl-labels"><span>Very Easy</span><span>Easy</span><span>Normal</span><span>Advanced</span><span>Complex</span></div>
+          </div>
+          <div class="sl-cur" id="slCur">Normal — Grade 7 equivalent</div>
+          <div class="auto-reason" id="autoReason" style="display:none"></div>
+        </div>
+      </div>
+
+      <div class="b-row">
+        <button class="btn b-blue" id="simpBtn" onclick="doSimplify()">&#10022; Simplify with AI</button>
+        <button class="btn b-ghost" onclick="loadEx()">Load example</button>
+      </div>
+    </div>
+
+    <!-- RIGHT col -->
+    <div class="w-col">
+      <div><div class="col-role">AI Output — Review</div><div class="col-title">Simplified Version</div></div>
+
+      <div>
+        <div class="lbl">Plain language — review &amp; edit</div>
+        <div class="out-box" id="outBox">
+          <div id="ldS" style="display:none"><div class="ld"><span></span><span></span><span></span></div><div class="ld-h">Simplifying with DEFT corpus + patient history...</div></div>
+          <textarea id="outEd" class="out-edit" style="display:none"></textarea>
+          <div class="out-ph" id="outPh">Output appears here after processing...</div>
+        </div>
+      </div>
+
+      <!-- Compact readability: grade level + hard words only -->
+      <div class="sc-row" id="scRow" style="display:none">
+        <div class="sc"><div class="sc-l">Grade level</div><div class="sc-v" id="grS">—</div></div>
+        <div class="sc"><div class="sc-l">Hard words %</div><div class="sc-v" id="hwS">—</div></div>
+        <div class="sc" id="prevCompSc" style="display:none"><div class="sc-l">Patient prev. comp.</div><div class="sc-v" id="prevComp">—</div></div>
+      </div>
+
+      <!-- Semantic similarity — sentence diff view -->
+      <div id="simSec" style="display:none">
+        <div class="lbl">Sentence-by-sentence meaning check</div>
+        <div class="sim-wrap" id="simWrap">
+          <div class="sim-head checking" id="simHead">
+            <div>
+              <div class="sim-title-row"><span class="sim-label">Checking meaning...</span></div>
+              <div class="sim-verdict-line" id="simVerdictLine"></div>
+            </div>
+            <div class="sim-pct" id="simPct"></div>
+          </div>
+          <div class="sim-bar-strip"><div class="sim-bar-inner" id="simBar" style="width:0%"></div></div>
+          <div id="simBody">
+            <div class="spin-w"><div class="spinner"></div>Analysing sentences via AI...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep">approval</div>
+      <div id="appRow" class="b-row" style="display:none">
+        <button class="btn b-green" id="appBtn" onclick="doApprove()">&#10003; Approve &amp; Send to Patient</button>
+        <button class="btn b-ghost" onclick="doSimplify()">&#8634; Regen</button>
+      </div>
+      <div id="appBanner" style="display:none"><div class="ok-banner">&#10003; Sent to patient — reading session started</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PATIENT ══ -->
+<div class="view" id="patientView">
+  <div class="pat-top">
+    <div><div class="pat-greet" id="patGreet">Hello &#128075;</div><div class="pat-sub">Here is your health information from your doctor.</div></div>
+    <div style="font-size:10px;color:var(--pm);font-weight:600" id="patSessLbl"></div>
+  </div>
+  <div class="pat-body">
+    <div id="progWrap" style="display:none">
+      <div class="prog-row"><span style="font-size:10px;color:var(--pm);font-weight:500">Reading progress</span><span style="font-size:10px;font-weight:700;color:var(--pa)" id="progPct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    </div>
+    <div>
+      <div class="lbl" style="color:var(--pm)">From your doctor</div>
+      <div id="patHint" style="display:none;font-size:11px;color:var(--pm);margin-bottom:8px;line-height:1.5">Tap any word you don't understand to see what it means.</div>
+      <div class="text-card" id="txtCard">
+        <div class="ws" id="wsState"><div class="wi">&#128203;</div><div class="wt">Your doctor hasn't sent your<br>health information yet.</div></div>
+        <div id="wCont" style="display:none"></div>
+      </div>
+    </div>
+    <div id="checkupWrap" style="display:none">
+      <div class="checkup">
+        <div class="cq">How well did you understand this information?</div>
+        <div class="copts">
+          <button class="copt" onclick="selU(this,1)">&#128533; Not at all</button>
+          <button class="copt" onclick="selU(this,2)">&#129300; A little</button>
+          <button class="copt" onclick="selU(this,3)">&#128578; Mostly</button>
+          <button class="copt" onclick="selU(this,4)">&#128522; Fully</button>
+        </div>
+      </div>
+    </div>
+    <div id="tyWrap" style="display:none"><div class="ty-ok">&#10003; Thank you — your feedback helps your doctor explain better next time.</div></div>
+  </div>
+</div>
+
+<!-- ══ ANALYTICS ══ -->
+<div class="view" id="analyticsView">
+  <div class="an-top"><div class="an-top-t">Patient Analytics</div><div style="font-size:9px;color:var(--am);font-weight:700;letter-spacing:.08em;text-transform:uppercase">Writer view only</div></div>
+  <div class="an-ptabs" id="anTabs"></div>
+  <div class="an-body" id="anBody"><div class="no-data"><div class="ei">&#9678;</div>Select a patient tab to view analytics.</div></div>
+</div>
+
+<!-- Definition popup (shared) -->
+<div class="def-popup" id="defPopup" style="display:none">
+  <button class="def-close" onclick="closeDefPopup()">&#10005;</button>
+  <div class="def-word" id="defWord"></div>
+  <div class="def-pos" id="defPos"></div>
+  <div class="def-text" id="defText"><div class="def-loading"><div class="def-spinner"></div>Looking up definition...</div></div>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
