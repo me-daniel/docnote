@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedBridge</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --doc:#16213e;--da:#5b9cf6;--dg:#52c48a;--dw:#f4a261;--dt:#e8e4de;--dm:rgba(232,228,222,0.4);--db:rgba(255,255,255,0.08);
+  --pat:#fdfcf9;--pa:#e07b54;--pt:#1c1917;--pm:#8a8480;--pb:rgba(0,0,0,0.07);
+  --an:#0d1520;--an2:#111e2e;--aa:#a78bfa;--at:#d4d0ca;--am:rgba(212,208,202,0.38);--ab:rgba(255,255,255,0.06);
+  --r:10px;--rs:6px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'DM Sans',sans-serif}
+body{background:#0d1117;overflow:hidden;display:flex;flex-direction:column}
+
+/* NAV */
+nav{background:var(--doc);height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--db);flex-shrink:0;z-index:200}
+.nav-logo{display:flex;align-items:center;gap:8px;color:var(--dt)}
+.nav-mark{width:24px;height:24px;background:var(--da);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.nav-name{font-family:'Fraunces',serif;font-size:16px;letter-spacing:-.3px}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{background:transparent;border:none;color:rgba(232,228,222,.45);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:6px 13px;border-radius:6px;cursor:pointer;transition:all .15s}
+.nav-tab:hover{color:var(--dt);background:rgba(255,255,255,.05)}
+.nav-tab.active{color:var(--da);background:rgba(91,156,246,.12)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.live{width:6px;height:6px;background:var(--dg);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(82,196,138,.4)}50%{box-shadow:0 0 0 4px rgba(82,196,138,0)}}
+select.psel{background:rgba(255,255,255,.06);border:1px solid var(--db);color:var(--dt);font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 9px;border-radius:var(--rs);outline:none;cursor:pointer}
+select.psel option{background:#1e2d52}
+.btn-xs{background:transparent;border:1px solid var(--db);color:rgba(232,228,222,.5);font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 10px;border-radius:var(--rs);cursor:pointer;transition:all .15s}
+.btn-xs:hover{border-color:rgba(255,255,255,.2);color:var(--dt)}
+
+.view{display:none;flex:1;overflow:hidden}
+.view.active{display:flex}
+
+/* ─── WRITER ─── */
+#writerView{background:var(--doc)}
+.w-grid{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%}
+.w-col{display:flex;flex-direction:column;height:100%;overflow-y:auto;padding:20px;gap:14px}
+.w-col::-webkit-scrollbar{width:3px}
+.w-col::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.w-col+.w-col{border-left:1px solid var(--db)}
+.col-role{font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--da);margin-bottom:2px}
+.col-title{font-family:'Fraunces',serif;font-size:17px;letter-spacing:-.3px;color:var(--dt)}
+.lbl{font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--dm);margin-bottom:5px}
+
+.profile-card{background:rgba(255,255,255,.04);border:1px solid var(--db);border-radius:var(--rs);padding:10px 12px}
+.p-row{display:flex;align-items:center;gap:9px}
+.p-av{width:32px;height:32px;border-radius:50%;background:rgba(91,156,246,.15);border:1.5px solid rgba(91,156,246,.3);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.p-name{font-size:12px;font-weight:600;color:var(--dt)}
+.p-sub{font-size:10px;color:var(--dm);margin-top:1px}
+.p-badges{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.pb{font-size:9px;padding:2px 7px;border-radius:9px;font-weight:600;font-family:'DM Mono',monospace}
+.pb.lv{background:rgba(91,156,246,.15);color:var(--da);border:1px solid rgba(91,156,246,.2)}
+.pb.se{background:rgba(82,196,138,.12);color:var(--dg);border:1px solid rgba(82,196,138,.18)}
+.pb.wn{background:rgba(244,162,97,.15);color:var(--dw);border:1px solid rgba(244,162,97,.22)}
+.pb.nw{background:rgba(255,255,255,.07);color:rgba(232,228,222,.5);border:1px solid var(--db)}
+
+/* AI insight + predicted words */
+.ai-ins{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:var(--rs);padding:10px 12px}
+.ai-ins-t{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--aa);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.ai-ins-body{font-size:11px;color:rgba(212,208,202,.8);line-height:1.55}
+.pred-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.pred-lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--am);width:100%;margin-bottom:2px}
+.pred{font-size:9px;padding:2px 8px;border-radius:9px;background:rgba(244,162,97,.15);color:var(--dw);border:1px solid rgba(244,162,97,.22);font-family:'DM Mono',monospace;font-weight:600;cursor:default}
+.pred.pf{background:rgba(224,60,60,.15);color:#ff9090;border-color:rgba(224,60,60,.28)}
+
+/* Challenging words panel on writer side */
+.chal-panel{background:rgba(255,255,255,.03);border:1px solid var(--db);border-radius:var(--rs);padding:10px 12px}
+.chal-word-row{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.chal-word-row:last-child{border-bottom:none}
+.chal-word{font-size:11px;font-weight:600;font-family:'DM Mono',monospace;color:var(--dt);flex:1}
+.chal-bar-bg{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.chal-bar-fg{height:100%;border-radius:2px}
+.chal-n{font-size:9px;font-family:'DM Mono',monospace;color:var(--dm);min-width:28px;text-align:right}
+.chal-badge{font-size:8px;padding:1px 5px;border-radius:6px;font-weight:700;flex-shrink:0}
+.chal-badge.fl{background:rgba(224,60,60,.18);color:#ff9090;border:1px solid rgba(224,60,60,.25)}
+.chal-badge.pr{background:rgba(244,162,97,.15);color:var(--dw);border:1px solid rgba(244,162,97,.22)}
+
+textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--db);border-radius:var(--rs);color:var(--dt);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.65;padding:10px 12px;resize:vertical;min-height:130px;outline:none;transition:border-color .2s}
+textarea:focus{border-color:rgba(91,156,246,.45);background:rgba(255,255,255,.06)}
+textarea::placeholder{color:rgba(232,228,222,.18)}
+
+/* Difficulty slider with AUTO mode */
+.sl-outer{display:flex;flex-direction:column;gap:5px}
+.sl-mode-row{display:flex;gap:5px;margin-bottom:2px}
+.sl-mode-btn{font-size:9px;font-weight:700;padding:3px 9px;border-radius:8px;border:1px solid var(--db);background:transparent;color:rgba(232,228,222,.45);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;letter-spacing:.04em}
+.sl-mode-btn:hover{color:var(--dt);border-color:rgba(255,255,255,.2)}
+.sl-mode-btn.active{background:rgba(167,139,250,.2);border-color:rgba(167,139,250,.4);color:var(--aa)}
+.sl-manual-btn.active{background:rgba(91,156,246,.15);border-color:rgba(91,156,246,.35);color:var(--da)}
+.sl-wrap{padding:2px 0 4px}
+.sl-track{position:relative;height:5px;background:linear-gradient(to right,#52c48a,#a0d870,#f4c842,#f4a261,#e05252);border-radius:3px;margin-bottom:8px}
+input[type=range].dsl{width:100%;-webkit-appearance:none;appearance:none;background:transparent;position:absolute;top:50%;transform:translateY(-50%);left:0;margin:0;height:5px;cursor:pointer}
+input[type=range].dsl:disabled{opacity:.4;cursor:not-allowed}
+input[type=range].dsl::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--da);box-shadow:0 1px 5px rgba(0,0,0,.35);transition:transform .15s}
+input[type=range].dsl:not(:disabled)::-webkit-slider-thumb:hover{transform:scale(1.2)}
+.sl-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--dm);font-weight:600}
+.sl-cur{font-size:10px;font-weight:600;color:var(--da);text-align:center}
+.auto-reason{font-size:10px;color:rgba(167,139,250,.7);text-align:center;margin-top:2px;font-style:italic}
+
+.btn{border:none;border-radius:var(--rs);padding:8px 15px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;letter-spacing:.02em}
+.b-blue{background:var(--da);color:#fff}.b-blue:hover{background:#6fa8ff;transform:translateY(-1px)}.b-blue:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.b-ghost{background:transparent;color:rgba(232,228,222,.5);border:1px solid var(--db)}.b-ghost:hover{border-color:rgba(255,255,255,.2);color:var(--dt)}
+.b-green{background:var(--dg);color:#fff;flex:1}.b-green:hover{background:#5fd49a;transform:translateY(-1px)}.b-green:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.b-row{display:flex;gap:7px}
+.ld{display:flex;gap:4px;align-items:center;padding:7px 0}
+.ld span{width:5px;height:5px;background:var(--da);border-radius:50%;animation:ld 1.2s ease-in-out infinite}
+.ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}
+@keyframes ld{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}
+.ld-h{font-size:10px;color:var(--dm);margin-top:2px}
+.out-box{background:rgba(255,255,255,.03);border:1px solid var(--db);border-radius:var(--rs);padding:11px 12px;min-height:100px}
+.out-edit{width:100%;background:transparent;border:none;color:rgba(232,228,222,.85);font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.7;resize:none;outline:none;min-height:80px}
+.out-ph{font-size:11px;color:rgba(232,228,222,.17);line-height:1.6}
+
+/* Score row — compact, grade level only */
+.sc-row{display:flex;gap:6px}
+.sc{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--db);border-radius:var(--rs);padding:7px 10px}
+.sc-l{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dm);margin-bottom:1px}
+.sc-v{font-size:16px;font-weight:700;font-family:'DM Mono',monospace}
+.sc-v.good{color:var(--dg)}.sc-v.warn{color:var(--dw)}.sc-v.bad{color:#ff6b6b}
+
+/* ── Similarity check — sentence diff layout ── */
+.sim-wrap{border-radius:var(--rs);border:1px solid var(--db);overflow:hidden}
+.sim-head{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid var(--db)}
+.sim-head.pass{background:rgba(82,196,138,.07);border-color:rgba(82,196,138,.2)}
+.sim-head.caution{background:rgba(244,162,97,.07);border-color:rgba(244,162,97,.2)}
+.sim-head.fail{background:rgba(224,60,60,.07);border-color:rgba(224,60,60,.2)}
+.sim-head.checking{background:rgba(91,156,246,.05);border-color:rgba(91,156,246,.15)}
+.sim-title-row{display:flex;align-items:center;gap:7px}
+.sim-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.sim-head.pass .sim-label{color:var(--dg)}.sim-head.caution .sim-label{color:var(--dw)}.sim-head.fail .sim-label{color:#ff6b6b}.sim-head.checking .sim-label{color:var(--da)}
+.sim-pct{font-size:15px;font-weight:700;font-family:'DM Mono',monospace}
+.sim-head.pass .sim-pct{color:var(--dg)}.sim-head.caution .sim-pct{color:var(--dw)}.sim-head.fail .sim-pct{color:#ff6b6b}
+.sim-verdict-line{font-size:10px;color:var(--dm);margin-top:2px}
+.sim-bar-strip{height:3px;background:rgba(255,255,255,.06)}
+.sim-bar-inner{height:100%;transition:width .8s ease}
+.sim-head.pass+.sim-bar-strip .sim-bar-inner{background:var(--dg)}
+.sim-head.caution+.sim-bar-strip .sim-bar-inner{background:var(--dw)}
+.sim-head.fail+.sim-bar-strip .sim-bar-inner{background:#ff6b6b}
+
+/* Sentence diff */
+.diff-list{display:flex;flex-direction:column;gap:0;max-height:260px;overflow-y:auto}
+.diff-list::-webkit-scrollbar{width:3px}
+.diff-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+.diff-pair{padding:9px 12px;border-bottom:1px solid var(--db);display:flex;flex-direction:column;gap:5px}
+.diff-pair:last-child{border-bottom:none}
+.diff-orig{font-size:10px;color:rgba(232,228,222,.4);line-height:1.55;font-style:italic}
+.diff-simp{font-size:11px;color:rgba(232,228,222,.85);line-height:1.6}
+.diff-orig-label{font-size:7px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgba(232,228,222,.25);margin-bottom:2px}
+.diff-simp-label{font-size:7px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:rgba(91,156,246,.5);margin-bottom:2px}
+.diff-changed{border-left:2px solid var(--dw)}
+.diff-good{border-left:2px solid var(--dg)}
+.diff-lost{border-left:2px solid #ff6b6b;background:rgba(224,60,60,.04)}
+/* Highlighted changed words */
+.w-changed{background:rgba(244,162,97,.22);border-radius:2px;padding:0 2px}
+.w-new{background:rgba(82,196,138,.18);border-radius:2px;padding:0 2px}
+
+.spin-w{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--da);padding:10px 12px}
+.spinner{width:11px;height:11px;border:2px solid rgba(91,156,246,.2);border-top-color:var(--da);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ok-banner{background:rgba(82,196,138,.12);border:1px solid rgba(82,196,138,.22);border-radius:var(--rs);padding:7px 11px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dg);font-weight:500}
+.sep{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dm);display:flex;align-items:center;gap:6px}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:var(--db)}
+
+/* ─── PATIENT ─── */
+#patientView{background:var(--pat);flex-direction:column}
+.pat-top{background:#fff;border-bottom:1px solid var(--pb);padding:11px 26px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pat-greet{font-family:'Fraunces',serif;font-size:16px;color:var(--pt);letter-spacing:-.2px}
+.pat-sub{font-size:11px;color:var(--pm);margin-top:1px}
+.pat-body{flex:1;overflow-y:auto;padding:20px 26px;display:flex;flex-direction:column;gap:14px;max-width:680px;margin:0 auto;width:100%}
+.pat-body::-webkit-scrollbar{width:3px}
+.pat-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.08);border-radius:2px}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.prog-bar{height:3px;background:rgba(0,0,0,.06);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:var(--pa);border-radius:3px;transition:width .4s ease;width:0%}
+.text-card{background:#fff;border:1px solid var(--pb);border-radius:var(--r);padding:20px 22px;line-height:1.85;font-size:16px;color:var(--pt);box-shadow:0 1px 10px rgba(0,0,0,.05);min-height:130px;font-family:'Georgia',serif;position:relative}
+.ws{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;gap:8px;color:var(--pm);text-align:center}
+.wi{font-size:24px;opacity:.3}.wt{font-size:12px;line-height:1.5}
+.w{display:inline;padding:1px 2px;border-radius:3px;cursor:pointer;position:relative;transition:background .2s}
+.w.d1{background:rgba(82,196,138,.1)}.w.d2{background:rgba(244,194,66,.16)}.w.d3{background:rgba(240,130,80,.18)}.w.d4{background:rgba(220,60,60,.15)}
+.w.sel{outline:2px solid var(--pa);outline-offset:1px;border-radius:3px}
+/* Tooltip — pure CSS via data-attr, never touches text flow */
+.w[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#1c1917;color:#fff;font-size:8px;font-weight:700;padding:2px 7px;border-radius:3px;white-space:nowrap;z-index:50;pointer-events:none;letter-spacing:.04em;font-family:'DM Sans',sans-serif;opacity:0;visibility:hidden;transition:opacity .12s}
+.w[data-tip]::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:3px solid transparent;border-top-color:#1c1917;opacity:0;visibility:hidden;transition:opacity .12s;z-index:50}
+.w[data-tip]:hover::after,.w[data-tip]:hover::before{opacity:1;visibility:visible}
+
+/* Definition popup */
+.def-popup{position:fixed;background:#1c1917;color:#f0ece6;border-radius:var(--r);padding:14px 16px;max-width:280px;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);animation:popIn .18s ease}
+@keyframes popIn{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:none}}
+.def-word{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;font-family:'Fraunces',serif}
+.def-pos{font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(240,236,230,.4);margin-bottom:7px}
+.def-text{font-size:12px;line-height:1.6;color:rgba(240,236,230,.8)}
+.def-close{position:absolute;top:8px;right:10px;background:none;border:none;color:rgba(240,236,230,.4);cursor:pointer;font-size:14px;padding:2px 5px}
+.def-loading{font-size:11px;color:rgba(240,236,230,.5);display:flex;align-items:center;gap:6px}
+.def-spinner{width:10px;height:10px;border:1.5px solid rgba(255,255,255,.15);border-top-color:rgba(255,255,255,.6);border-radius:50%;animation:spin .7s linear infinite}
+
+.checkup{background:rgba(224,123,84,.06);border:1px solid rgba(224,123,84,.14);border-radius:var(--rs);padding:12px 14px}
+.cq{font-size:13px;color:var(--pt);font-weight:500;margin-bottom:9px;line-height:1.4}
+.copts{display:flex;gap:6px;flex-wrap:wrap}
+.copt{font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--pb);background:#fff;color:var(--pt);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;font-weight:500}
+.copt:hover,.copt.sel{background:var(--pa);color:#fff;border-color:var(--pa)}
+.hp-section{display:flex;flex-direction:column;gap:7px}
+.hard-pills{display:flex;flex-wrap:wrap;gap:5px}
+.hp{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:4px 10px;border-radius:20px;background:rgba(224,123,84,.07);border:1px solid rgba(224,123,84,.18);color:var(--pa);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;font-weight:500}
+.hp:hover{background:rgba(224,123,84,.16)}.hp.flg{background:rgba(224,123,84,.24);border-color:rgba(224,123,84,.45);font-weight:700}
+.ty-ok{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--rs);font-size:11px;font-weight:600;background:rgba(82,196,138,.1);border:1px solid rgba(82,196,138,.22);color:#3aa06e}
+.pat-info{background:rgba(224,123,84,.04);border:1px solid rgba(224,123,84,.1);border-radius:var(--rs);padding:9px 12px;font-size:11px;color:var(--pm);line-height:1.6}
+.pat-info-t{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--pa);margin-bottom:3px}
+
+/* ─── ANALYTICS ─── */
+#analyticsView{background:var(--an);flex-direction:column}
+.an-top{background:var(--an2);border-bottom:1px solid var(--ab);padding:0 22px;height:48px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.an-top-t{font-family:'Fraunces',serif;font-size:15px;color:var(--at)}
+.an-ptabs{display:flex;gap:2px;overflow-x:auto;padding:0 22px;border-bottom:1px solid var(--ab);background:var(--an2);flex-shrink:0}
+.an-ptabs::-webkit-scrollbar{height:2px}
+.an-ptab{background:transparent;border:none;border-bottom:2px solid transparent;color:rgba(212,208,202,.4);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:9px 13px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.an-ptab:hover{color:var(--at)}.an-ptab.active{color:var(--aa);border-bottom-color:var(--aa)}
+.an-body{flex:1;overflow-y:auto;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:13px;align-content:start}
+.an-body::-webkit-scrollbar{width:3px}
+.an-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:2px}
+.an-card{background:var(--an2);border:1px solid var(--ab);border-radius:var(--r);overflow:hidden}
+.an-card.s2{grid-column:1/-1}
+.an-ch{padding:9px 13px;border-bottom:1px solid var(--ab);display:flex;align-items:center;justify-content:space-between}
+.an-ct{font-size:8px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--am)}
+.an-cb{padding:12px 13px}
+
+/* Simplified overview — 3 key metrics only */
+.an-3met{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.an-met{background:rgba(255,255,255,.03);border:1px solid var(--ab);border-radius:var(--rs);padding:10px 12px;text-align:center}
+.an-mv{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;color:var(--at)}
+.an-ml{font-size:7px;text-transform:uppercase;letter-spacing:.09em;color:var(--am);margin-top:2px;font-weight:700}
+
+/* Feedback loop banner */
+.feedback-loop{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:var(--rs);padding:11px 13px;display:flex;flex-direction:column;gap:6px}
+.fl-title{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--aa)}
+.fl-item{font-size:11px;color:var(--at);padding:4px 0 4px 12px;position:relative;line-height:1.5;opacity:.9}
+.fl-item::before{content:'→';position:absolute;left:0;color:var(--aa);font-size:10px;top:4px}
+.fl-item.good::before{color:var(--dg)}
+.fl-item.warn::before{color:var(--dw)}
+.fl-item.bad::before{color:#ff6b6b}
+
+canvas.trend{display:block;width:100%}
+.freq-list{display:flex;flex-direction:column;gap:5px}
+.fr-row{display:flex;align-items:center;gap:7px}
+.fr-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.fr-word{font-size:10px;font-weight:600;font-family:'DM Mono',monospace;color:var(--at);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fr-bg{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.fr-fg{height:100%;border-radius:3px;transition:width .5s}
+.fr-n{font-size:8px;font-family:'DM Mono',monospace;color:var(--am);width:20px;text-align:right;flex-shrink:0}
+.fr-flag{font-size:8px;color:#f4a261;flex-shrink:0}
+canvas.hmap{display:block;width:100%;border-radius:3px}
+.sess-list{display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto}
+.sess-list::-webkit-scrollbar{width:3px}
+.sess-r{display:flex;align-items:center;gap:9px;padding:7px 9px;background:rgba(255,255,255,.02);border-radius:var(--rs);border:1px solid var(--ab)}
+.sess-n{font-size:8px;font-family:'DM Mono',monospace;color:var(--am);width:18px;flex-shrink:0}
+.sess-d{font-size:10px;color:var(--at);flex:1}
+.sess-s{font-size:11px;font-weight:700;font-family:'DM Mono',monospace}
+.ai-sum{background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.18);border-radius:var(--rs);padding:10px 12px}
+.ai-sum-t{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--aa);margin-bottom:5px}
+.sug{font-size:11px;color:var(--at);line-height:1.55;padding:3px 0 3px 11px;position:relative;opacity:.85}
+.sug::before{content:'→';position:absolute;left:0;color:var(--aa);font-size:9px}
+.no-data{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;gap:9px;color:var(--am);text-align:center;font-size:12px}
+.ei{font-size:26px;opacity:.25;margin-bottom:3px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo"><div class="nav-mark">Mb</div><div class="nav-name">MedBridge</div></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="go('writer')">✍ Writer</button>
+    <button class="nav-tab" onclick="go('patient')">🧑 Patient</button>
+    <button class="nav-tab" onclick="go('analytics')">◈ Analytics</button>
+  </div>
+  <div class="nav-right">
+    <div class="live"></div>
+    <select class="psel" id="psel" onchange="onPChange()"><option value="">— Select patient —</option></select>
+    <button class="btn-xs" onclick="addPt()">+ Patient</button>
+  </div>
+</nav>
+
+<!-- ══ WRITER ══ -->
+<div class="view active" id="writerView">
+  <div class="w-grid">
+    <!-- LEFT col -->
+    <div class="w-col">
+      <div><div class="col-role">👨‍⚕️ Clinician — Input</div><div class="col-title">Compose Message</div></div>
+
+      <div>
+        <div class="lbl">Active patient</div>
+        <div class="profile-card" id="profileCard"><div style="font-size:11px;color:var(--dm)">Select a patient to load their profile.</div></div>
+      </div>
+
+      <!-- AI insight + predicted words -->
+      <div id="insightWrap" style="display:none">
+        <div class="ai-ins">
+          <div class="ai-ins-t">✦ Patient Insight <span id="insightSpin" style="display:none"><span class="spinner" style="display:inline-block;vertical-align:middle"></span></span></div>
+          <div class="ai-ins-body" id="insightText"></div>
+          <div class="pred-wrap" id="predWords"></div>
+        </div>
+      </div>
+
+      <!-- Challenging words from analytics -->
+      <div id="chalWrap" style="display:none">
+        <div class="lbl">Words this patient may find challenging</div>
+        <div class="chal-panel" id="chalPanel"></div>
+      </div>
+
+      <div>
+        <div class="lbl">Clinical notes / instructions</div>
+        <textarea id="medIn" placeholder="Enter clinical text...&#10;&#10;e.g. The patient presents with acute onset dyspnea secondary to left ventricular systolic dysfunction..."></textarea>
+      </div>
+
+      <!-- Difficulty slider with Auto mode -->
+      <div>
+        <div class="lbl" style="margin-bottom:7px">Patient reading difficulty</div>
+        <div class="sl-outer">
+          <div class="sl-mode-row">
+            <button class="sl-mode-btn sl-manual-btn active" id="manualModeBtn" onclick="setMode('manual')">Manual</button>
+            <button class="sl-mode-btn" id="autoModeBtn" onclick="setMode('auto')">✦ Auto from history</button>
+          </div>
+          <div class="sl-wrap" id="slWrap">
+            <div class="sl-track" style="position:relative">
+              <input type="range" class="dsl" id="dsl" min="1" max="5" value="3" step="1" oninput="updSl(this.value)">
+            </div>
+            <div class="sl-labels"><span>Very Easy</span><span>Easy</span><span>Normal</span><span>Advanced</span><span>Complex</span></div>
+          </div>
+          <div class="sl-cur" id="slCur">Normal — Grade 7 equivalent</div>
+          <div class="auto-reason" id="autoReason" style="display:none"></div>
+        </div>
+      </div>
+
+      <div class="b-row">
+        <button class="btn b-blue" id="simpBtn" onclick="doSimplify()">✦ Simplify with AI</button>
+        <button class="btn b-ghost" onclick="loadEx()">Load example</button>
+      </div>
+    </div>
+
+    <!-- RIGHT col -->
+    <div class="w-col">
+      <div><div class="col-role">AI Output — Review</div><div class="col-title">Simplified Version</div></div>
+
+      <div>
+        <div class="lbl">Plain language — review &amp; edit</div>
+        <div class="out-box" id="outBox">
+          <div id="ldS" style="display:none"><div class="ld"><span></span><span></span><span></span></div><div class="ld-h">Simplifying with DEFT corpus + patient history...</div></div>
+          <textarea id="outEd" class="out-edit" style="display:none"></textarea>
+          <div class="out-ph" id="outPh">Output appears here after processing...</div>
+        </div>
+      </div>
+
+      <!-- Compact readability: grade level + hard words only -->
+      <div class="sc-row" id="scRow" style="display:none">
+        <div class="sc"><div class="sc-l">Grade level</div><div class="sc-v" id="grS">—</div></div>
+        <div class="sc"><div class="sc-l">Hard words %</div><div class="sc-v" id="hwS">—</div></div>
+        <div class="sc" id="prevCompSc" style="display:none"><div class="sc-l">Patient prev. comp.</div><div class="sc-v" id="prevComp">—</div></div>
+      </div>
+
+      <!-- Semantic similarity — sentence diff view -->
+      <div id="simSec" style="display:none">
+        <div class="lbl">Sentence-by-sentence meaning check</div>
+        <div class="sim-wrap" id="simWrap">
+          <div class="sim-head checking" id="simHead">
+            <div>
+              <div class="sim-title-row"><span class="sim-label">Checking meaning...</span></div>
+              <div class="sim-verdict-line" id="simVerdictLine"></div>
+            </div>
+            <div class="sim-pct" id="simPct"></div>
+          </div>
+          <div class="sim-bar-strip"><div class="sim-bar-inner" id="simBar" style="width:0%"></div></div>
+          <div id="simBody">
+            <div class="spin-w"><div class="spinner"></div>Analysing sentences via AI...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep">approval</div>
+      <div id="appRow" class="b-row" style="display:none">
+        <button class="btn b-green" id="appBtn" onclick="doApprove()">✓ Approve &amp; Send to Patient</button>
+        <button class="btn b-ghost" onclick="doSimplify()">↺ Regen</button>
+      </div>
+      <div id="appBanner" style="display:none"><div class="ok-banner">✓ Sent to patient — reading session started</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PATIENT ══ -->
+<div class="view" id="patientView">
+  <div class="pat-top">
+    <div><div class="pat-greet" id="patGreet">Hello 👋</div><div class="pat-sub">Here is your health information from your doctor.</div></div>
+    <div style="font-size:10px;color:var(--pm);font-weight:600" id="patSessLbl"></div>
+  </div>
+  <div class="pat-body">
+    <div id="progWrap" style="display:none">
+      <div class="prog-row"><span style="font-size:10px;color:var(--pm);font-weight:500">Reading progress</span><span style="font-size:10px;font-weight:700;color:var(--pa)" id="progPct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    </div>
+    <div>
+      <div class="lbl" style="color:var(--pm)">From your doctor</div>
+      <div id="patHint" style="display:none;font-size:11px;color:var(--pm);margin-bottom:8px;line-height:1.5">Tap any word you don't understand to see what it means.</div>
+      <div class="text-card" id="txtCard">
+        <div class="ws" id="wsState"><div class="wi">📋</div><div class="wt">Your doctor hasn't sent your<br>health information yet.</div></div>
+        <div id="wCont" style="display:none"></div>
+      </div>
+    </div>
+    <div id="checkupWrap" style="display:none">
+      <div class="checkup">
+        <div class="cq">How well did you understand this information?</div>
+        <div class="copts">
+          <button class="copt" onclick="selU(this,1)">😕 Not at all</button>
+          <button class="copt" onclick="selU(this,2)">🤔 A little</button>
+          <button class="copt" onclick="selU(this,3)">🙂 Mostly</button>
+          <button class="copt" onclick="selU(this,4)">😊 Fully</button>
+        </div>
+      </div>
+    </div>
+    <div id="tyWrap" style="display:none"><div class="ty-ok">✓ Thank you — your feedback helps your doctor explain better next time.</div></div>
+  </div>
+</div>
+
+<!-- ══ ANALYTICS ══ -->
+<div class="view" id="analyticsView">
+  <div class="an-top"><div class="an-top-t">Patient Analytics</div><div style="font-size:9px;color:var(--am);font-weight:700;letter-spacing:.08em;text-transform:uppercase">Writer view only</div></div>
+  <div class="an-ptabs" id="anTabs"></div>
+  <div class="an-body" id="anBody"><div class="no-data"><div class="ei">◎</div>Select a patient tab to view analytics.</div></div>
+</div>
+
+<!-- Definition popup (shared) -->
+<div class="def-popup" id="defPopup" style="display:none">
+  <button class="def-close" onclick="closeDefPopup()">✕</button>
+  <div class="def-word" id="defWord"></div>
+  <div class="def-pos" id="defPos"></div>
+  <div class="def-text" id="defText"><div class="def-loading"><div class="def-spinner"></div>Looking up definition...</div></div>
+</div>
+
+<script>
+// ── Storage ──
+const SK = 'mb_v4';
+let S = (()=>{ try{return JSON.parse(localStorage.getItem(SK))||{pts:{},pending:null,pendingPt:null};}catch{return{pts:{},pending:null,pendingPt:null};} })();
+function save(){localStorage.setItem(SK,JSON.stringify(S));}
+
+// ── State ──
+let curPt=null, wData=[], flagged=[], selfU=0, sessStart=null, hoverStart={}, hoverTimes={};
+let selLv=3, autoMode=false, origText='', simpText='', anPt=null;
+const defCache={};
+
+const LV={
+  1:{lbl:'Very Easy — Grade 3',desc:'very simple, very short sentences, like explaining to a child'},
+  2:{lbl:'Easy — Grade 5',desc:'simple everyday language, short sentences'},
+  3:{lbl:'Normal — Grade 7',desc:'clear and plain language, accessible to most adults'},
+  4:{lbl:'Advanced — Grade 9',desc:'somewhat detailed language'},
+  5:{lbl:'Complex — Clinical',desc:'clinically detailed language'}
+};
+
+const MED=new Set(['cardiomyopathy','ejection','fraction','myocardial','infarction','dyspnea','copd',
+  'obstructive','pulmonary','bronchodilator','spirometry','prednisolone','salbutamol','nebulization',
+  'amoxicillin','clavulanate','exacerbation','corticosteroid','antibiotic','pulmonology','ventilatory',
+  'systolic','diastolic','furosemide','lisinopril','diuretic','echocardiography','hypertension',
+  'arrhythmia','atherosclerosis','angioplasty','tachycardia','bradycardia','thrombosis','embolism',
+  'pneumonia','asthma','cholesterol','anticoagulant','vasodilator','immunosuppressant']);
+
+// ── Nav ──
+function go(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById(v+'View').classList.add('active');
+  ['writer','patient','analytics'].forEach((n,i)=>{if(n===v)document.querySelectorAll('.nav-tab')[i].classList.add('active');});
+  if(v==='analytics') renderAn();
+  if(v==='patient') setupPat();
+}
+
+// ── Patients ──
+function initPsel(){
+  const sel=document.getElementById('psel');
+  sel.innerHTML='<option value="">— Select patient —</option>';
+  Object.values(S.pts).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  if(curPt) sel.value=curPt;
+}
+function addPt(){
+  const n=prompt('Patient name:'); if(!n||!n.trim()) return;
+  const id='p_'+Date.now();
+  S.pts[id]={id,name:n.trim(),sessions:[],created:Date.now()};
+  save(); initPsel(); document.getElementById('psel').value=id; onPChange();
+}
+function onPChange(){
+  curPt=document.getElementById('psel').value||null;
+  renderProfile();
+  if(curPt) loadInsight();
+  else { document.getElementById('insightWrap').style.display='none'; }
+}
+function pt(id){return id?S.pts[id]:null;}
+
+function autoLv(p){
+  const ss=(p.sessions||[]).slice(-3); if(!ss.length) return 3;
+  const ac=ss.reduce((a,s)=>a+(s.comp||70),0)/ss.length;
+  const af=ss.reduce((a,s)=>a+(s.flagged||[]).length,0)/ss.length;
+  const au=ss.reduce((a,s)=>a+(s.selfU||2),0)/ss.length;
+  if(ac<50||af>6||au<1.7) return 1;
+  if(ac<65||af>3.5||au<2.2) return 2;
+  if(ac>=88&&af<0.5&&au>=3.5) return 5;
+  if(ac>=78&&af<1) return 4;
+  return 3;
+}
+function autoLvReason(p){
+  const ss=(p.sessions||[]).slice(-3); if(!ss.length) return '';
+  const ac=Math.round(ss.reduce((a,s)=>a+(s.comp||70),0)/ss.length);
+  const af=Math.round(ss.reduce((a,s)=>a+(s.flagged||[]).length,0)/ss.length*10)/10;
+  const lv=autoLv(p);
+  if(lv<=2) return `Avg comprehension ${ac}%, ${af} flagged/session — needs simpler text`;
+  if(lv>=4) return `Avg comprehension ${ac}%, reading well — can handle more detail`;
+  return `Avg comprehension ${ac}% — standard level appropriate`;
+}
+
+function renderProfile(){
+  const p=pt(curPt), card=document.getElementById('profileCard');
+  if(!p){card.innerHTML='<div style="font-size:11px;color:var(--dm)">Select a patient to load their profile.</div>';document.getElementById('chalWrap').style.display='none';return;}
+  const ss=p.sessions||[], af=ss.flatMap(s=>s.flagged||[]), ac=ss.length?Math.round(ss.reduce((a,s)=>a+(s.comp||0),0)/ss.length):null;
+  const top=[...new Set(af)].slice(0,3), lv=autoLv(p);
+  card.innerHTML=`<div class="p-row"><div class="p-av">${p.name[0].toUpperCase()}</div><div><div class="p-name">${p.name}</div><div class="p-sub">${ss.length} session${ss.length!==1?'s':''} · ${ac!=null?'Avg '+ac+'% comprehension':'No data yet'}</div></div></div>
+  <div class="p-badges">${ss.length?`<span class="pb lv">Rec. level ${lv}/5</span>`:'<span class="pb nw">New patient</span>'}<span class="pb se">${ss.length} sessions</span>${top.length?`<span class="pb wn">⚑ ${top.join(', ')}</span>`:''}</div>`;
+  // show prev comp in score row
+  if(ac!=null){
+    document.getElementById('prevCompSc').style.display='flex';
+    const el=document.getElementById('prevComp');
+    el.textContent=ac+'%';
+    el.className='sc-v '+(ac>=75?'good':ac>=55?'warn':'bad');
+  }
+  renderChalWords(p);
+}
+
+function renderChalWords(p){
+  const ss=p.sessions||[];
+  const chalWrap=document.getElementById('chalWrap');
+  if(!ss.length){chalWrap.style.display='none';return;}
+
+  // Aggregate: flagged words (highest weight) + high hover time words + frequent hard words
+  const fc={}, hc={};
+  ss.forEach(s=>{
+    (s.flagged||[]).forEach(w=>{fc[w]=(fc[w]||0)+2;}); // flagged = weight 2
+    Object.entries(s.htimes||{}).forEach(([w,t])=>{hc[w]=(hc[w]||0)+t;});
+    Object.entries(s.wfreq||{}).forEach(([w,n])=>{fc[w]=(fc[w]||0)+n*0.5;}); // freq = weight 0.5
+  });
+  // Merge hover time into score
+  Object.entries(hc).forEach(([w,t])=>{if(t>2000) fc[w]=(fc[w]||0)+Math.floor(t/1000);});
+
+  const allFlagged=new Set(ss.flatMap(s=>s.flagged||[]));
+  const sorted=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!sorted.length){chalWrap.style.display='none';return;}
+
+  const maxScore=sorted[0][1];
+  const colors=['#e03c3c','#f4894a','#f4c242','#52c48a'];
+  const panel=document.getElementById('chalPanel');
+  panel.innerHTML=sorted.map(([word,score],i)=>{
+    const pct=Math.round(score/maxScore*100);
+    const c=i===0?colors[0]:i<=1?colors[1]:i<=3?colors[2]:colors[3];
+    const isFlagged=allFlagged.has(word);
+    const isHover=hc[word]>2000;
+    return`<div class="chal-word-row">
+      <div class="chal-word">${word}</div>
+      <div class="chal-bar-bg"><div class="chal-bar-fg" style="width:${pct}%;background:${c}"></div></div>
+      ${isFlagged?'<span class="chal-badge fl">flagged</span>':''}
+      ${isHover&&!isFlagged?'<span class="chal-badge pr">slow read</span>':''}
+      <div class="chal-n">${Math.round(score*10)/10}</div>
+    </div>`;
+  }).join('');
+  chalWrap.style.display='block';
+}
+
+async function loadInsight(){
+  const p=pt(curPt); if(!p) return;
+  document.getElementById('insightWrap').style.display='block';
+  document.getElementById('insightText').textContent='';
+  document.getElementById('predWords').innerHTML='';
+  document.getElementById('insightSpin').style.display='inline';
+  const ss=p.sessions||[], lv=autoLv(p);
+  // Auto mode: update slider
+  if(autoMode){ selLv=lv; document.getElementById('dsl').value=lv; updSl(lv,false); document.getElementById('autoReason').textContent=autoLvReason(p); document.getElementById('autoReason').style.display='block'; }
+  if(!ss.length){document.getElementById('insightText').textContent='New patient — no history yet. Starting at Normal level.';document.getElementById('insightSpin').style.display='none';return;}
+  const af=ss.flatMap(s=>s.flagged||[]), fc={};
+  af.forEach(w=>{fc[w]=(fc[w]||0)+1;});
+  const top=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([w,n])=>`${w}(×${n})`).join(', ');
+  const ac=Math.round(ss.reduce((a,s)=>a+(s.comp||0),0)/ss.length);
+  const at=Math.round(ss.reduce((a,s)=>a+(s.rt||0),0)/ss.length);
+  try{
+    const r=await api([{role:'user',content:`Medical reading analyst. Patient "${p.name}": ${ss.length} sessions, avg comprehension ${ac}%, avg read time ${at}s, flagged words: ${top||'none'}, recommended level ${lv}/5.\n\nWrite 2 concise sentences (max 40 words): reading profile + one writing recommendation.\nThen: PREDICT: 6 medical/complex words this patient is likely to struggle with.\nFormat:\n[2 sentences]\nPREDICT: word1, word2...`}],350);
+    const parts=r.split('PREDICT:'), ins=parts[0].trim(), pred=parts[1]?parts[1].trim().split(',').map(w=>w.trim()).filter(Boolean):[];
+    document.getElementById('insightText').textContent=ins;
+    const pw=document.getElementById('predWords');
+    if(pred.length){
+      pw.innerHTML='<div class="pred-lbl">Predicted difficult words for this patient:</div>';
+      pred.forEach(w=>{const pf=af.map(x=>x.toLowerCase()).includes(w.toLowerCase());pw.innerHTML+=`<span class="pred ${pf?'pf':''}" title="${pf?'Previously flagged by this patient':''}">${pf?'⚑ ':''}${w}</span>`;});
+    }
+  }catch(e){document.getElementById('insightText').textContent=`${ss.length} sessions. Avg comprehension: ${ac}%. Rec. level: ${LV[lv].lbl}.`;}
+  document.getElementById('insightSpin').style.display='none';
+}
+
+// ── Slider mode ──
+function setMode(mode){
+  autoMode=(mode==='auto');
+  document.getElementById('autoModeBtn').classList.toggle('active',autoMode);
+  document.getElementById('manualModeBtn').classList.toggle('active',!autoMode);
+  document.getElementById('dsl').disabled=autoMode;
+  document.getElementById('autoReason').style.display='none';
+  if(autoMode&&curPt){
+    const p=pt(curPt); if(!p) return;
+    const lv=autoLv(p); selLv=lv;
+    document.getElementById('dsl').value=lv; updSl(lv,false);
+    document.getElementById('autoReason').textContent=autoLvReason(p);
+    document.getElementById('autoReason').style.display='block';
+  }
+}
+function updSl(v,manual=true){
+  selLv=parseInt(v);
+  document.getElementById('slCur').textContent=LV[v].lbl;
+  if(manual&&autoMode){setMode('manual');}
+}
+
+// ── Writer ──
+function loadEx(){document.getElementById('medIn').value=`The patient is a 67-year-old male presenting with acute exacerbation of chronic obstructive pulmonary disease (COPD). Spirometry indicates a post-bronchodilator FEV1/FVC ratio of 0.65, consistent with moderate obstructive ventilatory defect. Initiate short-acting beta-2 agonist (salbutamol 2.5mg via nebulization q4h), systemic corticosteroids (prednisolone 40mg PO OD x 5 days), and empiric antibiotic therapy with amoxicillin-clavulanate 875/125mg PO BID for suspected bacterial exacerbation. Monitor SpO2, target 88–92%. Arrange pulmonology follow-up in 2 weeks post-discharge.`;}
+
+async function doSimplify(){
+  const txt=document.getElementById('medIn').value.trim(); if(!txt){alert('Enter clinical text first.');return;}
+  origText=txt;
+  const btn=document.getElementById('simpBtn'); btn.disabled=true; btn.innerHTML='⟳ Processing...';
+  document.getElementById('ldS').style.display='block';
+  document.getElementById('outPh').style.display='none';
+  document.getElementById('outEd').style.display='none';
+  document.getElementById('appRow').style.display='none';
+  document.getElementById('scRow').style.display='none';
+  document.getElementById('appBanner').style.display='none';
+  document.getElementById('simSec').style.display='none';
+
+  const p=pt(curPt); let hCtx='';
+  if(p&&p.sessions.length){
+    const af=p.sessions.flatMap(s=>s.flagged||[]), fc={};
+    af.forEach(w=>{fc[w]=(fc[w]||0)+1;});
+    const top=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([w,n])=>`"${w}"(×${n})`).join(', ');
+    const ac=Math.round(p.sessions.reduce((a,s)=>a+(s.comp||0),0)/p.sessions.length);
+    hCtx=`\n\nPATIENT HISTORY FEEDBACK: Previously flagged difficult words: ${top||'none'}. Avg comprehension: ${ac}%. ${ac<60?'Patient struggles significantly — use the absolute simplest language, avoid ALL jargon.':ac<75?'Patient has moderate difficulty — keep sentences very short, avoid jargon.':'Patient understands reasonably well — ensure clarity and avoid unnecessary medical terms.'} Actively avoid the flagged words or define them clearly.`;
+  }
+  const lv=LV[selLv];
+  const sys=`You are MedBridge, a health literacy specialist trained on the DEFT corpus. Rewrite clinical text for a patient at level: ${lv.lbl}.\n\nRULES:\n1. Preserve ALL clinical meaning — accuracy is life-critical.\n2. Use ${lv.desc}. Max sentence: ${selLv<=2?13:selLv<=3?18:23} words.\n3. Active voice. Short paragraphs (2-3 sentences max).\n4. DEFT substitutions: dyspnea→shortness of breath, myocardial infarction→heart attack, hypertension→high blood pressure, diuretic→water pill, PO→by mouth, QD/OD→once a day, BID→twice a day, nebulization→breathing treatment, FEV1/FVC→breathing test, COPD→COPD (a long-term lung condition), corticosteroid→steroid medicine, SpO2→blood oxygen level, ejection fraction→how well your heart pumps, acute exacerbation→sudden worsening, empiric→precautionary.\n5. Define any remaining medical terms in parentheses on first use.\n6. Warm, reassuring tone.${hCtx}\n\nReturn ONLY the simplified text.`;
+  try{
+    const simp=await api([{role:'user',content:txt}],1000,sys);
+    if(simp){
+      simpText=simp;
+      document.getElementById('ldS').style.display='none';
+      const ed=document.getElementById('outEd'); ed.value=simp; ed.style.display='block'; ed.style.height='auto'; ed.style.height=ed.scrollHeight+'px';
+      calcScores(simp);
+      document.getElementById('scRow').style.display='flex';
+      document.getElementById('simSec').style.display='block';
+      await checkSim(txt,simp);
+    }
+  }catch(e){
+    document.getElementById('ldS').style.display='none';
+    document.getElementById('outPh').style.display='block';
+    document.getElementById('outPh').textContent='API error: '+e.message;
+    document.getElementById('outPh').style.color='#ff8080';
+  }
+  btn.disabled=false; btn.innerHTML='✦ Simplify with AI';
+}
+
+// ── Sentence diff similarity check ──
+async function checkSim(orig,simp){
+  const head=document.getElementById('simHead');
+  head.className='sim-head checking';
+  document.getElementById('simPct').textContent='';
+  document.getElementById('simVerdictLine').textContent='';
+  document.getElementById('simBar').style.width='0%';
+  document.getElementById('simBody').innerHTML='<div class="spin-w"><div class="spinner"></div>Analysing sentences via AI...</div>';
+
+  const prompt=`You are a medical semantic similarity evaluator. Compare the ORIGINAL clinical text and its SIMPLIFIED version sentence by sentence.
+
+ORIGINAL:
+"""${orig}"""
+
+SIMPLIFIED:
+"""${simp}"""
+
+Respond ONLY with valid JSON, no markdown:
+{
+  "overall_score": <0-100>,
+  "verdict": "<one sentence summary>",
+  "pairs": [
+    {
+      "orig": "<original sentence>",
+      "simp": "<corresponding simplified sentence or empty string if removed>",
+      "status": "<'good'|'changed'|'lost'>",
+      "note": "<brief explanation of what changed or was preserved, max 10 words>"
+    }
+  ]
+}
+
+Status rules: 'good'=meaning fully preserved, 'changed'=meaning slightly shifted or simplified term differs, 'lost'=key clinical info missing from simplified version.`;
+
+  try{
+    const raw=await api([{role:'user',content:prompt}],900);
+    const data=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderSentenceDiff(data);
+  }catch(e){ renderSimErr(); }
+}
+
+function renderSentenceDiff(data){
+  const sc=data.overall_score??0;
+  const cls=sc>=85?'pass':sc>=68?'caution':'fail';
+  const head=document.getElementById('simHead');
+  head.className='sim-head '+cls;
+  document.getElementById('simPct').textContent=sc+'%';
+  document.getElementById('simVerdictLine').textContent=data.verdict||'';
+  const labelEl=head.querySelector('.sim-label');
+  labelEl.textContent=sc>=85?'✓ Meaning Preserved':sc>=68?'⚠ Minor Drift Detected':'✗ Meaning at Risk';
+
+  document.getElementById('simBar').style.width=sc+'%';
+  // colour bar via parent class trick — inline it
+  const barEl=document.getElementById('simBar');
+  barEl.style.background=sc>=85?'var(--dg)':sc>=68?'var(--dw)':'#ff6b6b';
+
+  const pairs=data.pairs||[];
+  const body=document.getElementById('simBody');
+  if(!pairs.length){body.innerHTML='<div style="padding:10px 12px;font-size:11px;color:var(--dm)">No sentence pairs found.</div>';return;}
+
+  body.innerHTML=pairs.map(p=>{
+    const statusClass=p.status==='good'?'diff-good':p.status==='lost'?'diff-lost':'diff-changed';
+    const simpHtml=p.simp?`<div class="diff-simp-label">Simplified</div><div class="diff-simp">${p.simp}</div>`:`<div class="diff-simp" style="color:#ff8080;font-style:italic">⚠ Not found in simplified version</div>`;
+    const noteHtml=p.note?`<div style="font-size:9px;color:var(--dm);margin-top:3px;font-style:italic">${p.note}</div>`:'';
+    return `<div class="diff-pair ${statusClass}">
+      <div class="diff-orig-label">Original</div>
+      <div class="diff-orig">${p.orig}</div>
+      ${simpHtml}
+      ${noteHtml}
+    </div>`;
+  }).join('');
+
+  // Gate approval
+  const ab=document.getElementById('appBtn');
+  document.getElementById('appRow').style.display='flex';
+  if(sc<68){ab.disabled=true;ab.style.background='';ab.textContent='✗ Cannot Approve — Meaning at Risk';}
+  else if(sc<85){ab.disabled=false;ab.style.background='#b86e1a';ab.textContent='⚠ Approve with Caution';}
+  else{ab.disabled=false;ab.style.background='';ab.textContent='✓ Approve & Send to Patient';}
+}
+
+function renderSimErr(){
+  const head=document.getElementById('simHead'); head.className='sim-head caution';
+  head.querySelector('.sim-label').textContent='Check unavailable';
+  document.getElementById('simBody').innerHTML='<div style="padding:10px 12px;font-size:11px;color:var(--dm)">Similarity check failed — review manually before approving.</div>';
+  document.getElementById('appRow').style.display='flex';
+}
+
+function doApprove(){
+  const txt=document.getElementById('outEd').value.trim(); if(!txt) return;
+  simpText=txt; S.pending=txt; S.pendingPt=curPt; save();
+  document.getElementById('appRow').style.display='none';
+  document.getElementById('appBanner').style.display='block';
+  setTimeout(()=>{go('patient');},700);
+}
+
+function calcScores(text){
+  const sents=text.split(/[.!?]+/).filter(s=>s.trim().length>4), words=text.match(/\b\w+\b/g)||[];
+  const sylls=words.reduce((a,w)=>a+syl(w),0), asl=words.length/Math.max(sents.length,1), asw=sylls/Math.max(words.length,1);
+  const fkg=Math.round((0.39*asl+11.8*asw-15.59)*10)/10;
+  const hard=words.filter(w=>syl(w)>=3).length, cpx=Math.round(hard/Math.max(words.length,1)*100);
+  const grEl=document.getElementById('grS'); grEl.textContent=Math.max(0,fkg); grEl.className='sc-v '+(fkg<=7?'good':fkg<=10?'warn':'bad');
+  const cxEl=document.getElementById('hwS'); cxEl.textContent=cpx+'%'; cxEl.className='sc-v '+(cpx<=15?'good':cpx<=25?'warn':'bad');
+}
+function syl(w){w=w.toLowerCase().replace(/[^a-z]/g,'');if(!w)return 0;if(w.length<=3)return 1;w=w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'').replace(/^y/,'');const m=w.match(/[aeiouy]{1,2}/g);return m?m.length:1;}
+
+// ── Patient ──
+function setupPat(){
+  S=(()=>{try{return JSON.parse(localStorage.getItem(SK))||{pts:{},pending:null,pendingPt:null};}catch{return{pts:{},pending:null,pendingPt:null};}})();
+  const txt=S.pending, pid=S.pendingPt, p=pt(pid);
+  if(p){document.getElementById('patGreet').textContent=`Hello, ${p.name} 👋`;document.getElementById('patSessLbl').textContent=`Session ${p.sessions.length+1}`;}
+  else{document.getElementById('patGreet').textContent='Hello 👋';document.getElementById('patSessLbl').textContent='';}
+  if(!txt) return;
+  wData=[]; flagged=[]; selfU=0; hoverStart={}; hoverTimes={}; sessStart=Date.now();
+  document.getElementById('wsState').style.display='none';
+  document.getElementById('wCont').style.display='block';
+  document.getElementById('progWrap').style.display='block';
+  document.getElementById('patHint').style.display='none';
+  document.getElementById('checkupWrap').style.display='none';
+  document.getElementById('tyWrap').style.display='none';
+  renderWs(txt); simProg();
+}
+
+function diffLv(w){
+  const c=w.toLowerCase().replace(/[^a-z]/g,''); if(!c||c.length<=2) return 0;
+  if(MED.has(c)) return 4; const s=syl(c);
+  if(s>=4) return 3; if(s===3) return 2; if(s===2&&c.length>6) return 1; return 0;
+}
+
+function renderWs(text){
+  const cont=document.getElementById('wCont'); cont.innerHTML='';
+  // Show subtle hint
+  document.getElementById('patHint').style.display='block';
+
+  text.split(/(\s+)/).forEach((tok)=>{
+    if(/^\s+$/.test(tok)){cont.appendChild(document.createTextNode(tok));return;}
+    const raw=tok.replace(/[^a-zA-Z]/g,''), diff=raw?diffLv(raw):0, idx=wData.length;
+    wData.push({word:tok,clean:raw.toLowerCase(),diff,sel:false,idx});
+    const span=document.createElement('span');
+    span.className='w'+(diff>0?' d'+diff:'');
+    span.dataset.idx=idx;
+    span.textContent=tok; // ONLY the word — no child spans
+    // Tooltip via data attribute (pure CSS, never renders as text)
+    if(diff>=1){
+      const tipLabels=['','Easy word','Moderate word','Difficult word','Medical term'];
+      span.setAttribute('data-tip', tipLabels[diff]);
+    }
+    // Click: flag + show definition popup
+    span.addEventListener('click',()=>{
+      const e=wData[span.dataset.idx];
+      e.sel=!e.sel; span.classList.toggle('sel',e.sel);
+      if(e.sel&&e.clean&&!flagged.includes(e.clean)) flagged.push(e.clean);
+      else if(!e.sel) flagged=flagged.filter(w=>w!==e.clean);
+      if(e.sel&&e.clean) showDefPopup(e.clean, span);
+      else closeDefPopup();
+    });
+    // Hover time tracking (eye-tracking proxy)
+    span.addEventListener('mouseenter',()=>{hoverStart[idx]=Date.now();});
+    span.addEventListener('mouseleave',()=>{if(hoverStart[idx]){hoverTimes[idx]=(hoverTimes[idx]||0)+(Date.now()-hoverStart[idx]);delete hoverStart[idx];}});
+    cont.appendChild(span);
+  });
+}
+
+// ── Definition popup ──
+function showDefPopup(word, anchorEl){
+  const popup=document.getElementById('defPopup');
+  document.getElementById('defWord').textContent=word;
+  document.getElementById('defPos').textContent='';
+  document.getElementById('defText').innerHTML='<div class="def-loading"><div class="def-spinner"></div>Looking up definition...</div>';
+  // Position near anchor
+  const rect=anchorEl.getBoundingClientRect();
+  let top=rect.bottom+8, left=rect.left;
+  if(left+290>window.innerWidth) left=window.innerWidth-298;
+  if(top+160>window.innerHeight) top=rect.top-170;
+  popup.style.top=top+'px'; popup.style.left=left+'px';
+  popup.style.display='block';
+  fetchDef(word);
+}
+function closeDefPopup(){document.getElementById('defPopup').style.display='none';}
+document.addEventListener('click',e=>{if(!e.target.closest('.def-popup')&&!e.target.closest('.w')&&!e.target.closest('.hp')) closeDefPopup();});
+
+async function fetchDef(word){
+  if(defCache[word]){renderDef(word,defCache[word]);return;}
+  try{
+    const txt=await api([{role:'user',content:`Define the medical/health term "${word}" for a patient. Respond ONLY with JSON:\n{"pos":"<noun/verb/adjective>","plain":"<plain English definition in 1-2 sentences, max 30 words, no jargon>"}`}],200);
+    const d=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    defCache[word]=d; renderDef(word,d);
+  }catch(e){
+    document.getElementById('defText').textContent='Definition unavailable.';
+  }
+}
+function renderDef(word,d){
+  document.getElementById('defPos').textContent=d.pos||'';
+  document.getElementById('defText').textContent=d.plain||'Definition not available.';
+}
+
+function simProg(){
+  let p=0; const iv=setInterval(()=>{
+    p=Math.min(p+Math.random()*6+2,100);
+    document.getElementById('progFill').style.width=Math.round(p)+'%';
+    document.getElementById('progPct').textContent=Math.round(p)+'%';
+    if(p>=100){clearInterval(iv);wData.forEach((w,i)=>{if(!hoverTimes[i])hoverTimes[i]=90+w.diff*85+Math.random()*110;});document.getElementById('checkupWrap').style.display='block';}
+  },180);
+}
+
+function selU(btn,lv){
+  document.querySelectorAll('.copt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); selfU=lv;
+  setTimeout(()=>{document.getElementById('checkupWrap').style.display='none';document.getElementById('tyWrap').style.display='block';saveSess();},500);
+}
+
+function saveSess(){
+  const pid=S.pendingPt; if(!pid||!S.pts[pid]) return;
+  const rt=Math.round((Date.now()-sessStart)/1000);
+  const hc=wData.filter(w=>w.diff>=3).length, hr=hc/Math.max(wData.filter(w=>w.clean).length,1);
+  const sb=selfU?(selfU-1)*9:0;
+  const comp=Math.round(Math.max(28,Math.min(97,90-hr*95+sb-flagged.length*3)));
+  const wf={}, ht={};
+  wData.forEach((w,i)=>{if(w.diff>=2&&w.clean){wf[w.clean]=(wf[w.clean]||0)+1;ht[w.clean]=(ht[w.clean]||0)+(hoverTimes[i]||0);}});
+  S.pts[pid].sessions.push({id:'s_'+Date.now(),date:new Date().toLocaleDateString(),ts:Date.now(),comp,rt,selfU,flagged:[...flagged],wfreq:wf,htimes:ht,lv:selLv,total:wData.filter(w=>w.clean).length,hardN:hc});
+  S.pending=null; save();
+  if(curPt===pid) renderProfile();
+}
+
+// ── Analytics ──
+function renderAn(){
+  S=(()=>{try{return JSON.parse(localStorage.getItem(SK))||{pts:{},pending:null,pendingPt:null};}catch{return{pts:{},pending:null,pendingPt:null};}})();
+  const tabs=document.getElementById('anTabs'); tabs.innerHTML='';
+  const pts=Object.values(S.pts);
+  if(!pts.length){document.getElementById('anBody').innerHTML='<div class="no-data"><div class="ei">◎</div>No patients yet.</div>';return;}
+  pts.forEach(p=>{const b=document.createElement('button');b.className='an-ptab'+(p.id===anPt?' active':'');b.textContent=p.name+(p.sessions.length?` (${p.sessions.length})`:'');b.onclick=()=>{anPt=p.id;renderAn();};tabs.appendChild(b);});
+  if(!anPt) anPt=pts[0].id;
+  renderPtAn(anPt);
+}
+
+function renderPtAn(pid){
+  const p=pt(pid), body=document.getElementById('anBody');
+  if(!p){body.innerHTML='<div class="no-data"><div class="ei">◎</div>Select a patient.</div>';return;}
+  const ss=p.sessions||[];
+  if(!ss.length){body.innerHTML=`<div class="no-data"><div class="ei">◎</div><strong style="color:var(--at)">${p.name}</strong><br>No sessions yet.</div>`;return;}
+
+  const ac=Math.round(ss.reduce((a,s)=>a+(s.comp||0),0)/ss.length);
+  const at=Math.round(ss.reduce((a,s)=>a+(s.rt||0),0)/ss.length);
+  const af=ss.flatMap(s=>s.flagged||[]), fc={};
+  af.forEach(w=>{fc[w]=(fc[w]||0)+1;});
+  const wfT={}, htT={};
+  ss.forEach(s=>{Object.entries(s.wfreq||{}).forEach(([w,n])=>{wfT[w]=(wfT[w]||0)+n;});Object.entries(s.htimes||{}).forEach(([w,t])=>{htT[w]=(htT[w]||0)+t;});});
+  const topF=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const topH=Object.entries(htT).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const lv=autoLv(p), trend=ss.length>1?ss[ss.length-1].comp-ss[0].comp:0;
+
+  // Build feedback loop items
+  const loopItems=buildFeedbackLoop(p,ss,ac,af,lv);
+
+  body.innerHTML=`
+  <!-- 3 key metrics -->
+  <div class="an-card s2">
+    <div class="an-ch"><span class="an-ct">Overview — ${p.name}</span><span style="font-size:8px;color:var(--am);font-family:'DM Mono',monospace">${ss.length} sessions</span></div>
+    <div class="an-cb"><div class="an-3met">
+      <div class="an-met"><div class="an-mv" style="color:${ac>=75?'#52c48a':ac>=55?'#f4a261':'#ff6b6b'}">${ac}%</div><div class="an-ml">Avg comprehension</div></div>
+      <div class="an-met"><div class="an-mv">${at}s</div><div class="an-ml">Avg read time</div></div>
+      <div class="an-met"><div class="an-mv" style="color:var(--aa)">${lv}/5</div><div class="an-ml">Recommended level</div></div>
+    </div></div>
+  </div>
+
+  <!-- Feedback loop — the key insight for the writer -->
+  <div class="an-card s2">
+    <div class="an-ch"><span class="an-ct">✦ Feedback loop — what to improve next time</span><span style="font-size:8px;color:${trend>=0?'#52c48a':'#ff6b6b'};font-family:'DM Mono',monospace">${trend>=0?'▲':'▼'} ${Math.abs(trend)}% trend</span></div>
+    <div class="an-cb"><div class="feedback-loop" id="feedbackLoop">${loopItems}</div></div>
+  </div>
+
+  <!-- Comprehension trend -->
+  <div class="an-card">
+    <div class="an-ch"><span class="an-ct">Comprehension over sessions</span></div>
+    <div class="an-cb" style="padding:8px"><canvas class="trend" id="trC" height="110"></canvas></div>
+  </div>
+
+  <!-- Flagged words -->
+  <div class="an-card">
+    <div class="an-ch"><span class="an-ct">Words patient flagged as difficult</span></div>
+    <div class="an-cb"><div class="freq-list" id="flList">${topF.length?'':'<div style="font-size:10px;color:var(--am)">No words flagged yet.</div>'}</div></div>
+  </div>
+
+  <!-- Fixation heatmap -->
+  <div class="an-card">
+    <div class="an-ch"><span class="an-ct">Reading fixation time by word</span><span style="font-size:8px;color:var(--am);font-family:'DM Mono',monospace">eye tracking proxy</span></div>
+    <div class="an-cb" style="padding:8px"><canvas class="hmap" id="hmC" height="85"></canvas></div>
+  </div>
+
+  <!-- Session history -->
+  <div class="an-card">
+    <div class="an-ch"><span class="an-ct">Session history</span></div>
+    <div class="an-cb"><div class="sess-list" id="sesList"></div></div>
+  </div>
+
+  <!-- AI profile -->
+  <div class="an-card s2">
+    <div class="an-ch"><span class="an-ct">✦ AI writing recommendations</span></div>
+    <div class="an-cb"><div class="ai-sum" id="aiSum">
+      <div class="ai-sum-t">✦ Generating...</div>
+      <div class="spin-w" style="margin-top:5px"><div class="spinner"></div><span style="font-size:10px;color:var(--am)">Analysing ${ss.length} sessions...</span></div>
+    </div></div>
+  </div>`;
+
+  setTimeout(()=>{
+    drawTrend(ss); drawHmap(topH); drawFlagList(topF); drawSessList(ss);
+    genAiSum(p,ss,ac,at,topF,lv);
+  },40);
+}
+
+function buildFeedbackLoop(p,ss,ac,af,lv){
+  const items=[];
+  const trend=ss.length>1?ss[ss.length-1].comp-ss[0].comp:0;
+  const fc={};af.forEach(w=>{fc[w]=(fc[w]||0)+1;});
+  const topFlag=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([w])=>w);
+  const lastSelf=ss[ss.length-1]?.selfU||0;
+  const selfLabels=['','Not at all','A little','Mostly','Fully'];
+  // Comprehension
+  if(ac<60) items.push({cls:'bad',text:`Comprehension is low (${ac}%) — simplify text further, use Very Easy or Easy level next time`});
+  else if(ac<75) items.push({cls:'warn',text:`Comprehension is moderate (${ac}%) — consider reducing sentence length and removing jargon`});
+  else items.push({cls:'good',text:`Comprehension is good (${ac}%) — current difficulty level is working well`});
+  // Trend
+  if(trend>10) items.push({cls:'good',text:`Improving — comprehension rose ${trend}% across sessions, patient is adapting`});
+  else if(trend<-10) items.push({cls:'bad',text:`Declining — comprehension dropped ${Math.abs(trend)}%, reconsider difficulty level`});
+  // Flagged words
+  if(topFlag.length) items.push({cls:'warn',text:`Avoid or define these words next time: ${topFlag.join(', ')}`});
+  // Self-reported
+  if(lastSelf===1||lastSelf===2) items.push({cls:'bad',text:`Patient self-reported "${selfLabels[lastSelf]}" understanding last session — use simpler language`});
+  else if(lastSelf>=3) items.push({cls:'good',text:`Patient self-reported "${selfLabels[lastSelf]}" understanding — maintain this approach`});
+  // Level
+  items.push({cls:'',text:`Recommended level for next message: ${LV[lv].lbl}`});
+  return items.map(i=>`<div class="fl-item ${i.cls}">${i.text}</div>`).join('');
+}
+
+function drawTrend(ss){
+  const cv=document.getElementById('trC'); if(!cv) return;
+  const dpr=window.devicePixelRatio||1, W=cv.parentElement.clientWidth;
+  cv.width=W*dpr; cv.height=110*dpr; cv.style.width=W+'px'; cv.style.height='110px';
+  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
+  const pad={t:12,r:12,b:20,l:28}, cw=W-pad.l-pad.r, ch=110-pad.t-pad.b;
+  const scores=ss.map(s=>s.comp||0);
+  ctx.strokeStyle='rgba(255,255,255,.05)'; ctx.lineWidth=0.5;
+  [0,25,50,75,100].forEach(v=>{const y=pad.t+ch-(v/100)*ch;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();ctx.fillStyle='rgba(212,208,202,.25)';ctx.font='7px DM Mono,monospace';ctx.textAlign='right';ctx.fillText(v+'%',pad.l-2,y+3);});
+  if(scores.length===1){const x=pad.l+cw/2,y=pad.t+ch-(scores[0]/100)*ch;ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#a78bfa';ctx.fill();}
+  else{
+    const gr=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);gr.addColorStop(0,'rgba(167,139,250,.25)');gr.addColorStop(1,'rgba(167,139,250,.02)');
+    ctx.beginPath();scores.forEach((s,i)=>{const x=pad.l+(i/(scores.length-1))*cw,y=pad.t+ch-(s/100)*ch;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.lineTo(pad.l+cw,pad.t+ch);ctx.lineTo(pad.l,pad.t+ch);ctx.closePath();ctx.fillStyle=gr;ctx.fill();
+    ctx.beginPath();ctx.strokeStyle='#a78bfa';ctx.lineWidth=1.5;
+    scores.forEach((s,i)=>{const x=pad.l+(i/(scores.length-1))*cw,y=pad.t+ch-(s/100)*ch;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.stroke();
+    scores.forEach((s,i)=>{const x=pad.l+(i/(scores.length-1))*cw,y=pad.t+ch-(s/100)*ch;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle=s>=75?'#52c48a':s>=55?'#f4a261':'#ff6b6b';ctx.fill();});
+  }
+  ctx.fillStyle='rgba(212,208,202,.25)';ctx.font='7px DM Mono,monospace';ctx.textAlign='center';
+  ss.forEach((s,i)=>{const x=scores.length===1?pad.l+cw/2:pad.l+(i/(scores.length-1))*cw;ctx.fillText('S'+(i+1),x,110-pad.b+11);});
+}
+
+function drawHmap(topH){
+  const cv=document.getElementById('hmC'); if(!cv) return;
+  const dpr=window.devicePixelRatio||1, W=cv.parentElement.clientWidth;
+  cv.width=W*dpr; cv.height=85*dpr; cv.style.width=W+'px'; cv.style.height='85px';
+  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.fillStyle='rgba(255,255,255,.02)';ctx.fillRect(0,0,W,85);
+  if(!topH.length){ctx.fillStyle='rgba(212,208,202,.2)';ctx.font='10px DM Sans,sans-serif';ctx.textAlign='center';ctx.fillText('No hover data yet',W/2,42);return;}
+  const max=topH[0][1], bw=Math.floor((W-16)/topH.length)-3;
+  topH.forEach(([w,t],i)=>{
+    const x=8+i*(bw+3), int=t/max, bh=10+int*55;
+    const r=Math.round(int*210),g=Math.round((1-int)*150);
+    ctx.fillStyle=`rgba(${r},${g},70,${0.4+int*.5})`;
+    ctx.beginPath();ctx.roundRect(x,85-bh-16,bw,bh,2);ctx.fill();
+    ctx.fillStyle='rgba(212,208,202,.5)';ctx.font='7px DM Mono,monospace';ctx.textAlign='center';
+    ctx.fillText((w.length>9?w.slice(0,8)+'…':w),x+bw/2,83);
+    ctx.fillStyle='rgba(212,208,202,.3)';ctx.font='6px DM Mono,monospace';
+    ctx.fillText(Math.round(t/100)/10+'s',x+bw/2,85-bh-19);
+  });
+}
+
+function drawFlagList(topF){
+  const list=document.getElementById('flList'); if(!list||!topF.length) return;
+  const max=topF[0][1]; const cs=['#e03c3c','#f4894a','#f4c242','#52c48a'];
+  list.innerHTML=topF.map(([w,n],i)=>{const p=Math.round(n/max*100),c=i===0?cs[0]:i<=1?cs[1]:i<=3?cs[2]:cs[3];
+    return`<div class="fr-row"><div class="fr-dot" style="background:${c}"></div><div class="fr-word">${w}</div><div class="fr-bg"><div class="fr-fg" style="width:${p}%;background:${c}"></div></div><div class="fr-flag">✦</div><div class="fr-n">×${n}</div></div>`;}).join('');
+}
+
+function drawSessList(ss){
+  const list=document.getElementById('sesList'); if(!list) return;
+  const lbs=['','Not at all','A little','Mostly','Fully'];
+  list.innerHTML=[...ss].reverse().map((s,i)=>{const n=ss.length-i,c=(s.comp||0)>=75?'#52c48a':(s.comp||0)>=55?'#f4a261':'#ff6b6b';
+    return`<div class="sess-r"><div class="sess-n">S${n}</div><div class="sess-d">${s.date||'—'} · ${s.rt||0}s · Lv${s.lv||3} · ${lbs[s.selfU||0]||'—'}</div><div class="sess-s" style="color:${c}">${s.comp||0}%</div></div>`;}).join('');
+}
+
+async function genAiSum(p,ss,ac,at,topF,lv){
+  const box=document.getElementById('aiSum'); if(!box) return;
+  const af=ss.flatMap(s=>s.flagged||[]), fc={};
+  af.forEach(w=>{fc[w]=(fc[w]||0)+1;});
+  const topFstr=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([w,n])=>`${w}(×${n})`).join(', ')||'none';
+  const sus=ss.map(s=>s.selfU||0).filter(Boolean);
+  const as=sus.length?(sus.reduce((a,b)=>a+b,0)/sus.length).toFixed(1):'N/A';
+  const tr=ss.length>1?ss[ss.length-1].comp-ss[0].comp:0;
+  try{
+    const txt=await api([{role:'user',content:`Health literacy analyst. Patient "${p.name}": ${ss.length} sessions, avg comprehension ${ac}%, trend ${tr>0?'+'+tr:tr}%, avg read time ${at}s, self-reported understanding ${as}/4, most flagged words: ${topFstr}, recommended level ${lv}/5 (${LV[lv].lbl}).\n\nWrite a concise 2-3 sentence profile focusing on: reading ability, what causes difficulty, and trajectory.\n\nThen write 3-4 specific, actionable writing recommendations for the clinician. Start each with "→".`}],400);
+    const parts=txt.split('→'), sum=parts[0].trim(), bullets=parts.slice(1).map(b=>b.trim()).filter(Boolean);
+    box.innerHTML=`<div class="ai-sum-t">✦ AI Profile — ${p.name}</div><div style="margin-bottom:8px;font-size:11px;color:rgba(212,208,202,.8);line-height:1.6">${sum}</div>${bullets.map(b=>`<div class="sug">${b}</div>`).join('')}`;
+  }catch(e){
+    box.innerHTML=`<div class="ai-sum-t">✦ Profile</div><div class="sug">Avg comprehension: ${ac}%</div><div class="sug">Rec. level: ${LV[lv].lbl}</div><div class="sug">Flagged: ${topFstr}</div>`;
+  }
+}
+
+// ── API ──
+async function api(msgs,maxT=800,sys=null){
+  const body={model:'claude-sonnet-4-20250514',max_tokens:maxT,messages:msgs};
+  if(sys) body.system=sys;
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(`API ${r.status}`);
+  const d=await r.json(); return d.content?.[0]?.text||'';
+}
+
+// ── Init ──
+(function init(){
+  initPsel();
+  if(!Object.keys(S.pts).length){
+    S.pts['p_d1']={id:'p_d1',name:'Maria Gonzalez',sessions:[
+      {id:'s1',date:'12/03/2026',ts:Date.now()-864e4*5,comp:54,rt:142,selfU:2,flagged:['nebulization','salbutamol','prednisolone','exacerbation'],wfreq:{nebulization:2,salbutamol:1,prednisolone:1,exacerbation:1,pulmonary:2},htimes:{nebulization:3200,salbutamol:2800,prednisolone:3100,exacerbation:2600},lv:3,total:98,hardN:12},
+      {id:'s2',date:'15/03/2026',ts:Date.now()-864e4*2,comp:67,rt:118,selfU:3,flagged:['nebulization','exacerbation','corticosteroid'],wfreq:{nebulization:2,exacerbation:1,corticosteroid:1,pulmonary:1},htimes:{nebulization:2900,exacerbation:2400,corticosteroid:3000},lv:2,total:84,hardN:8}
+    ],created:Date.now()-864e4*7};
+    S.pts['p_d2']={id:'p_d2',name:'James O\'Brien',sessions:[
+      {id:'s1',date:'08/03/2026',ts:Date.now()-864e4*12,comp:72,rt:95,selfU:3,flagged:['dyspnea','ejection'],wfreq:{dyspnea:1,ejection:2,fraction:2,systolic:1},htimes:{dyspnea:1800,ejection:2200,fraction:1600},lv:3,total:110,hardN:9},
+      {id:'s2',date:'12/03/2026',ts:Date.now()-864e4*8,comp:79,rt:88,selfU:3,flagged:['ejection'],wfreq:{ejection:2,systolic:1},htimes:{ejection:1900},lv:3,total:95,hardN:7},
+      {id:'s3',date:'18/03/2026',ts:Date.now()-864e4*2,comp:85,rt:76,selfU:4,flagged:[],wfreq:{diuretic:1},htimes:{diuretic:900},lv:3,total:89,hardN:5}
+    ],created:Date.now()-864e4*14};
+    save(); initPsel();
+  }
+})();
+</script>
+</body>
+</html>
