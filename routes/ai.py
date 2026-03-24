@@ -22,16 +22,36 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 _main_model = genai.GenerativeModel("gemini-3-flash-preview")
 _light_model = genai.GenerativeModel("gemini-3.1-flash-lite-preview")
 
-LEVEL_CONFIG = {
-    1: {"label": "Very Easy — Grade 3", "desc": "very simple, very short sentences", "max_words": 13},
-    2: {"label": "Easy — Grade 5",      "desc": "simple everyday language",          "max_words": 17},
-    3: {"label": "Normal — Grade 7",    "desc": "clear and plain language",          "max_words": 19},
-    4: {"label": "Advanced — Grade 9",  "desc": "somewhat detailed language",        "max_words": 23},
-    5: {"label": "Complex — Clinical",  "desc": "clinically detailed",              "max_words": 30},
+LEVEL_RULES = {
+    1: """LEVEL-SPECIFIC RULES:
+- Replace ALL medical terms with plain everyday words (no jargon whatsoever).
+- Use the DEFT substitutions below for every matching term.
+- If a medical concept has no common equivalent, explain it in a simple phrase instead of using the term.
+- Write as if explaining to someone with no medical background at all.""",
+
+    2: """LEVEL-SPECIFIC RULES:
+- Replace most medical terms with plain alternatives using the DEFT substitutions below.
+- For terms not in the DEFT list, add a brief plain-language explanation in parentheses on first use.
+- Keep the language conversational and approachable.""",
+
+    3: """LEVEL-SPECIFIC RULES:
+- Use clear, plain language as the default.
+- Keep medical terms where they are commonly known (e.g. "blood pressure", "X-ray"), but define less common ones in parentheses on first use.
+- Apply DEFT substitutions for abbreviations and specialist jargon.""",
+
+    4: """LEVEL-SPECIFIC RULES:
+- Keep most medical terminology intact.
+- Only define terms that a generally educated adult would not know — add a brief parenthetical for those.
+- Expand abbreviations on first use (e.g. "PO (by mouth)").""",
+
+    5: """LEVEL-SPECIFIC RULES:
+- Preserve the original clinical language almost entirely.
+- Only expand uncommon abbreviations (e.g. "SpO2 (blood oxygen level)").
+- Do not simplify standard medical terminology.""",
 }
 
 DEFT_RULES = """
-DEFT corpus substitutions (apply these):
+DEFT corpus substitutions (apply at the appropriate level):
 - dyspnea → shortness of breath
 - myocardial infarction → heart attack
 - hypertension → high blood pressure
@@ -49,6 +69,21 @@ DEFT corpus substitutions (apply these):
 - empiric → precautionary
 """
 
+BASE_SYSTEM = """You are MedBridge, a health literacy specialist trained on the DEFT corpus.
+Your job is to translate clinical text into patient-friendly language.
+
+CRITICAL OUTPUT RULE: Your response must contain ONLY the rewritten patient text. Do NOT include any thinking, reasoning, self-checks, meta-commentary, notes, headers, or preamble. No "Final check", no "Wait", no asterisks, no internal monologue. Just the clean rewritten text — nothing else.
+
+CORE RULES (always apply):
+1. Every piece of clinical information in the original MUST appear in your output — never drop dosages, frequencies, measurements, follow-up instructions, or conditions. Accuracy is life-critical.
+2. Keep the natural structure and flow of the original — do not fragment sentences or remove paragraphs.
+3. Use active voice and a warm, reassuring tone.
+4. If the original lists multiple medications, instructions, or findings, your output must list all of them.
+
+{deft_rules}
+
+{level_rules}"""
+
 _def_cache = {}
 
 
@@ -57,14 +92,18 @@ def _generate(model, prompt: str, system: str = None, max_tokens: int = 1000) ->
     full_prompt = f"{system}\n\n{prompt}" if system else prompt
     response = model.generate_content(
         full_prompt,
-        generation_config=genai.types.GenerationConfig(max_output_tokens=max_tokens),
+        generation_config=genai.types.GenerationConfig(
+            max_output_tokens=max_tokens,
+            thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
+        ),
     )
     return response.text.strip()
 
 
 @router.post("/simplify", response_model=SimplifyResponse)
 def simplify_text(req: SimplifyRequest, db: DBSession = Depends(get_db)):
-    lv = LEVEL_CONFIG.get(req.difficulty_level, LEVEL_CONFIG[3])
+    level = req.difficulty_level
+    level_rules = LEVEL_RULES.get(level, LEVEL_RULES[3])
     history_ctx = ""
 
     if req.patient_id:
@@ -84,18 +123,9 @@ def simplify_text(req: SimplifyRequest, db: DBSession = Depends(get_db)):
                            f"Avg comprehension: {avg_comp}%. {note} "
                            f"Actively avoid flagged words or define them clearly.")
 
-    system = f"""You are MedBridge, a health literacy specialist trained on the DEFT corpus.
-Rewrite clinical text for a patient at level: {lv['label']}.
-
-RULES:
-1. Preserve ALL clinical meaning — accuracy is life-critical.
-2. Use {lv['desc']}. Max sentence: {lv['max_words']} words.
-3. Active voice. Short paragraphs (2-3 sentences max).
-4. {DEFT_RULES}
-5. Define any remaining medical terms in parentheses on first use.
-6. Warm, reassuring tone.{history_ctx}
-
-Return ONLY the simplified text, no preamble."""
+    system = BASE_SYSTEM.format(deft_rules=DEFT_RULES, level_rules=level_rules)
+    system += history_ctx
+    system += "\n\nReturn ONLY the rewritten text, no preamble."
 
     simplified = _generate(_main_model, req.text, system=system, max_tokens=1000)
 

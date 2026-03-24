@@ -203,7 +203,6 @@ async function doSimplify() {
     document.getElementById("ldS").style.display = "none";
     const ed = document.getElementById("outEd");
     ed.value = data.simplified; ed.style.display = "block";
-    ed.style.height = "auto"; ed.style.height = ed.scrollHeight + "px";
 
     // Scores
     document.getElementById("grS").textContent = Math.max(0, data.grade_level);
