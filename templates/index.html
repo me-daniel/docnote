@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedBridge</title>
+<title>DoctorTalk</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 
 <nav>
-  <div class="nav-logo"><div class="nav-mark">Mb</div><div class="nav-name">MedBridge</div></div>
+  <div class="nav-logo"><div class="nav-mark">Dt</div><div class="nav-name">DoctorTalk</div></div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="go('writer')">&#9997; Writer</button>
     <button class="nav-tab" onclick="go('patient')">&#129489; Patient</button>
@@ -30,26 +30,6 @@
     <!-- LEFT col -->
     <div class="w-col">
       <div><div class="col-role">&#128104;&#8205;&#9877;&#65039; Clinician — Input</div><div class="col-title">Compose Message</div></div>
-
-      <div>
-        <div class="lbl">Active patient</div>
-        <div class="profile-card" id="profileCard"><div style="font-size:11px;color:var(--dm)">Select a patient to load their profile.</div></div>
-      </div>
-
-      <!-- AI insight + predicted words -->
-      <div id="insightWrap" style="display:none">
-        <div class="ai-ins">
-          <div class="ai-ins-t">&#10022; Patient Insight <span id="insightSpin" style="display:none"><span class="spinner" style="display:inline-block;vertical-align:middle"></span></span></div>
-          <div class="ai-ins-body" id="insightText"></div>
-          <div class="pred-wrap" id="predWords"></div>
-        </div>
-      </div>
-
-      <!-- Challenging words from analytics -->
-      <div id="chalWrap" style="display:none">
-        <div class="lbl">Words this patient may find challenging</div>
-        <div class="chal-panel" id="chalPanel"></div>
-      </div>
 
       <div>
         <div class="lbl">Clinical notes / instructions</div>
@@ -78,6 +58,26 @@
       <div class="b-row">
         <button class="btn b-blue" id="simpBtn" onclick="doSimplify()">&#10022; Simplify with AI</button>
         <button class="btn b-ghost" onclick="loadEx()">Load example</button>
+      </div>
+
+      <div>
+        <div class="lbl">Active patient</div>
+        <div class="profile-card" id="profileCard"><div style="font-size:11px;color:var(--dm)">Select a patient to load their profile.</div></div>
+      </div>
+
+      <!-- AI insight + predicted words -->
+      <div id="insightWrap" style="display:none">
+        <div class="ai-ins">
+          <div class="ai-ins-t">&#10022; Patient Insight <span id="insightSpin" style="display:none"><span class="spinner" style="display:inline-block;vertical-align:middle"></span></span></div>
+          <div class="ai-ins-body" id="insightText"></div>
+          <div class="pred-wrap" id="predWords"></div>
+        </div>
+      </div>
+
+      <!-- Challenging words from analytics -->
+      <div id="chalWrap" style="display:none">
+        <div class="lbl">Words this patient may find challenging</div>
+        <div class="chal-panel" id="chalPanel"></div>
       </div>
     </div>
 

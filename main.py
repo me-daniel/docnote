@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="MedBridge API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="DoctorTalk API", version="1.0.0", lifespan=lifespan)
 
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")

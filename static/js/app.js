@@ -1,4 +1,4 @@
-// MedBridge frontend — talks to FastAPI backend at /api/*
+// DoctorTalk frontend — talks to FastAPI backend at /api/*
 // No Anthropic API key needed here — all AI calls go through the server
 
 const API = {
@@ -21,7 +21,8 @@ const API = {
   },
 };
 
-const THEME_KEY = "medbridge-theme";
+const THEME_KEY = "doctortalk-theme";
+const DEFAULT_ANALYTICS_PATIENT = "Uwe";
 
 function syncThemeBtn() {
   const btn = document.getElementById("themeToggle");
@@ -34,6 +35,10 @@ function syncThemeBtn() {
 }
 
 function initTheme() {
+  const legacy = localStorage.getItem("medbridge-theme");
+  if (legacy && !localStorage.getItem(THEME_KEY)) {
+    localStorage.setItem(THEME_KEY, legacy);
+  }
   const saved = localStorage.getItem(THEME_KEY);
   if (saved === "light" || saved === "dark") {
     document.documentElement.setAttribute("data-theme", saved);
@@ -98,6 +103,14 @@ async function initPsel() {
     o.value = p.id; o.textContent = p.name; sel.appendChild(o);
   });
   if (curPt) sel.value = curPt;
+  else {
+    const uwe = patients.find(p => p.name === DEFAULT_ANALYTICS_PATIENT);
+    if (uwe) {
+      sel.value = uwe.id;
+      curPt = uwe.id;
+      await onPChange();
+    }
+  }
 }
 
 async function addPt() {
@@ -469,7 +482,10 @@ async function renderAn() {
     b.onclick = () => { anPtId = p.id; renderAn(); };
     tabs.appendChild(b);
   });
-  if (!anPtId) anPtId = patients[0].id;
+  if (!anPtId) {
+    const uwe = patients.find(p => p.name === DEFAULT_ANALYTICS_PATIENT);
+    anPtId = uwe ? uwe.id : patients[0].id;
+  }
   renderPtAn(anPtId);
 }
 

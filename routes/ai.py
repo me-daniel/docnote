@@ -3,6 +3,7 @@ import os
 import re
 
 import google.generativeai as genai
+from google.api_core import exceptions as google_api_exceptions
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session as DBSession
 
@@ -18,9 +19,14 @@ router = APIRouter(prefix="/api", tags=["ai"])
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Models
-_main_model = genai.GenerativeModel("gemini-3-flash-preview")
-_light_model = genai.GenerativeModel("gemini-3.1-flash-lite-preview")
+# Models (primary + optional fallback when the API returns 429 / rate limit).
+# Lite fallback uses the same Flash Lite preview id as define/insight routes (v1beta exposes no gemini-3.0-flash-lite-preview).
+MODEL_MAIN = "gemini-3-flash-preview"
+MODEL_LITE = "gemini-3.1-flash-lite-preview"
+
+_main_model = genai.GenerativeModel(MODEL_MAIN)
+_light_model = genai.GenerativeModel(MODEL_LITE)
+_fallback_429_model = _light_model
 
 LEVEL_RULES = {
     1: """LEVEL-SPECIFIC RULES:
@@ -69,7 +75,7 @@ DEFT corpus substitutions (apply at the appropriate level):
 - empiric → precautionary
 """
 
-BASE_SYSTEM = """You are MedBridge, a health literacy specialist trained on the DEFT corpus.
+BASE_SYSTEM = """You are DoctorTalk, a health literacy specialist trained on the DEFT corpus.
 Your job is to translate clinical text into patient-friendly language.
 
 CRITICAL OUTPUT RULE: Your response must contain ONLY the rewritten patient text. Do NOT include any thinking, reasoning, self-checks, meta-commentary, notes, headers, or preamble. No "Final check", no "Wait", no asterisks, no internal monologue. Just the clean rewritten text — nothing else.
@@ -79,6 +85,7 @@ CORE RULES (always apply):
 2. Keep the natural structure and flow of the original — do not fragment sentences or remove paragraphs.
 3. Use active voice and a warm, reassuring tone.
 4. If the original lists multiple medications, instructions, or findings, your output must list all of them.
+5. Patient-facing copy: The reader is the person the note is about. Do not restate facts they already know about themselves (age, date of birth, name, sex or gender used only as background) unless the original text needs them for a specific clinical reason (for example age-based dosing or screening eligibility). Prefer "you" and "your" instead of "the patient" or third-person biography. Remove redundant openers such as "You are a 67-year-old…" when they add no new instruction or safety information.
 
 {deft_rules}
 
@@ -90,16 +97,68 @@ _def_cache = {}
 SIMPLIFY_MAX_OUTPUT_TOKENS = 8192
 
 
-def _generate(model, prompt: str, system: str = None, max_tokens: int = 1000) -> str:
-    """Unified helper to call Gemini and return text."""
-    full_prompt = f"{system}\n\n{prompt}" if system else prompt
-    response = model.generate_content(
-        full_prompt,
-        generation_config=genai.types.GenerationConfig(
-            max_output_tokens=max_tokens,
-        ),
+def _extract_response_text(response) -> str:
+    """Gemini `response.text` raises ValueError when blocked, empty, or parts are non-text-only."""
+    try:
+        t = response.text
+        if t is not None and str(t).strip():
+            return str(t).strip()
+    except ValueError:
+        pass
+    if not getattr(response, "candidates", None):
+        raise ValueError(
+            "No candidates in model response (blocked or invalid prompt). "
+            "Check `prompt_feedback` if available."
+        )
+    texts = []
+    for cand in response.candidates:
+        content = getattr(cand, "content", None)
+        if not content:
+            continue
+        for part in getattr(content, "parts", []) or []:
+            pt = getattr(part, "text", None)
+            if pt:
+                texts.append(pt)
+    if texts:
+        return "\n".join(texts).strip()
+    raise ValueError(
+        "Model returned no usable text (safety block, max tokens, or unsupported part types)."
     )
-    return response.text.strip()
+
+
+def _is_rate_limit_error(exc: BaseException) -> bool:
+    if isinstance(exc, google_api_exceptions.TooManyRequests):
+        return True
+    msg = str(exc).lower()
+    return "429" in msg or "resource exhausted" in msg or "rate limit" in msg
+
+
+def _generate(
+    model,
+    prompt: str,
+    system: str = None,
+    max_tokens: int = 1000,
+    *,
+    rate_limit_fallback: genai.GenerativeModel | None = None,
+) -> str:
+    """Unified helper to call Gemini and return text.
+
+    If ``rate_limit_fallback`` is set and the first call fails with a rate limit (429),
+    the same prompt is retried once on that model.
+    """
+    full_prompt = f"{system}\n\n{prompt}" if system else prompt
+    config = genai.types.GenerationConfig(max_output_tokens=max_tokens)
+
+    def _call(m):
+        response = m.generate_content(full_prompt, generation_config=config)
+        return _extract_response_text(response)
+
+    try:
+        return _call(model)
+    except Exception as e:
+        if rate_limit_fallback is not None and _is_rate_limit_error(e):
+            return _call(rate_limit_fallback)
+        raise
 
 
 @router.post("/simplify", response_model=SimplifyResponse)
@@ -109,6 +168,12 @@ def simplify_text(req: SimplifyRequest, db: DBSession = Depends(get_db)):
     history_ctx = ""
 
     if req.patient_id:
+        patient = db.query(Patient).filter(Patient.id == req.patient_id).first()
+        if patient:
+            history_ctx += (
+                f"\n\nREADER CONTEXT: This message is for {patient.name} to read themselves. "
+                "Address them directly. Do not repeat their age, name, or similar identifiers except when needed for care instructions."
+            )
         sessions = db.query(Session).filter(Session.patient_id == req.patient_id).all()
         flagged = db.query(FlaggedWord).filter(FlaggedWord.patient_id == req.patient_id).all()
         if sessions:
@@ -121,20 +186,26 @@ def simplify_text(req: SimplifyRequest, db: DBSession = Depends(get_db)):
             note = ("Struggles significantly — use simplest possible language." if avg_comp < 60
                     else "Moderate difficulty — keep sentences short." if avg_comp < 75
                     else "Understands reasonably — ensure clarity.")
-            history_ctx = (f"\n\nPATIENT HISTORY: Previously flagged difficult words: {top_str}. "
-                           f"Avg comprehension: {avg_comp}%. {note} "
-                           f"Actively avoid flagged words or define them clearly.")
+            history_ctx += (f"\n\nPATIENT HISTORY: Previously flagged difficult words: {top_str}. "
+                            f"Avg comprehension: {avg_comp}%. {note} "
+                            f"Actively avoid flagged words or define them clearly.")
 
     system = BASE_SYSTEM.format(deft_rules=DEFT_RULES, level_rules=level_rules)
     system += history_ctx
     system += "\n\nReturn ONLY the rewritten text, no preamble."
 
-    simplified = _generate(
-        _main_model,
-        req.text,
-        system=system,
-        max_tokens=SIMPLIFY_MAX_OUTPUT_TOKENS,
-    )
+    try:
+        simplified = _generate(
+            _main_model,
+            req.text,
+            system=system,
+            max_tokens=SIMPLIFY_MAX_OUTPUT_TOKENS,
+            rate_limit_fallback=_fallback_429_model,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=502, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Model error: {e!s}") from e
 
     grade, hard_pct = _readability(simplified)
     return SimplifyResponse(simplified=simplified, grade_level=grade, hard_word_pct=hard_pct)
@@ -164,7 +235,12 @@ Respond ONLY with valid JSON (no markdown):
   ]
 }}"""
 
-    raw = _generate(_main_model, prompt, max_tokens=900)
+    raw = _generate(
+        _main_model,
+        prompt,
+        max_tokens=900,
+        rate_limit_fallback=_fallback_429_model,
+    )
     raw = raw.replace("```json", "").replace("```", "").strip()
     return json.loads(raw)
 

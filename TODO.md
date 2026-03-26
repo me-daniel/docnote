@@ -1,4 +1,4 @@
-# MedBridge TODO
+# DoctorTalk TODO
 
 **Process:** Anything not finished in the current change belongs here. Do not rely on memory or chat for follow-ups.
 
@@ -9,7 +9,7 @@
 
 ## UI: light and dark mode
 
-- [x] **Theme toggle** in the nav (persists `medbridge-theme` in `localStorage`, respects `prefers-color-scheme` on first visit).
+- [x] **Theme toggle** in the nav (persists `doctortalk-theme` in `localStorage`, respects `prefers-color-scheme` on first visit). Legacy `medbridge-theme` is migrated once.
 - [x] **`data-theme="dark"` / `"light"`** on `<html>` with CSS variables in `static/css/style.css`.
 - [ ] Optional polish: theme-colored chart fills in `app.js` canvas helpers (`drawHeat`, `drawFlagList`) when `data-theme` is light.
 - [ ] Optional: sync `<meta name="color-scheme">` with the active theme for form controls.

@@ -1,4 +1,4 @@
-# MedBridge — FastAPI Backend
+# DoctorTalk — FastAPI backend
 
 ## Setup
 
@@ -7,22 +7,28 @@
 pip install -r requirements.txt
 ```
 
-### 2. Set your Anthropic API key
+### 2. Set your Gemini API key
 ```bash
 # Mac/Linux
-export ANTHROPIC_API_KEY=sk-ant-...
+export GEMINI_API_KEY=...
 
 # Windows (Command Prompt)
-set ANTHROPIC_API_KEY=sk-ant-...
+set GEMINI_API_KEY=...
 
 # Windows (PowerShell)
-$env:ANTHROPIC_API_KEY="sk-ant-..."
+$env:GEMINI_API_KEY="..."
 ```
 
 ### 3. Run the server
+From the project directory (`docnote/`):
+
 ```bash
-uvicorn main:app --reload --port 8000
+uv run uvicorn main:app --reload --port 8000
 ```
+
+Use **`main:app`**: Python module **`main`** (file `main.py`) and the FastAPI instance **`app`**. Do not use `app:main.py` or `uvicorn app:...` unless you add a separate `app` package.
+
+Alternatively: `uv run python main.py` runs the app with reload via the `if __name__ == "__main__"` block in `main.py`.
 
 ### 4. Open in browser
 ```
@@ -40,17 +46,19 @@ http://localhost:8000/redoc       # ReDoc
 ## Project Structure
 
 ```
-medbridge_fastapi/
-├── main.py          # FastAPI app — all routes
+docnote/
+├── main.py          # FastAPI app
 ├── models.py        # SQLAlchemy ORM models (Patient, Session, FlaggedWord)
-├── database.py      # DB engine, session, init_db()
+├── database.py      # DB engine, session, init_db(), demo seed for patient Uwe
 ├── requirements.txt
-├── medbridge.db     # SQLite database (auto-created on first run)
+├── doctortalk.db    # SQLite (auto-created; was medbridge.db in older checkouts)
 ├── templates/
-│   └── index.html   # Frontend HTML (copy your medbridge.html here)
+│   └── index.html
 └── static/
-    └── app.js       # Frontend JS — calls FastAPI instead of Anthropic directly
+    ├── css/ js/
 ```
+
+On first run the server seeds a demo patient **Uwe** with sample sessions so the Analytics tab has charts by default. The Writer patient dropdown selects **Uwe** when nothing else is chosen.
 
 ---
 
@@ -65,7 +73,7 @@ medbridge_fastapi/
 | POST | `/api/sessions` | Save a reading session |
 | GET | `/api/patients/{id}/analytics` | Full analytics data |
 | GET | `/api/patients/{id}/challenging-words` | Ranked difficult words |
-| POST | `/api/simplify` | Simplify clinical text with Claude |
+| POST | `/api/simplify` | Simplify clinical text with Gemini |
 | POST | `/api/check-similarity` | Sentence-level similarity check |
 | POST | `/api/define` | Get plain-English word definition |
 | POST | `/api/patient-insight` | AI patient reading profile |
@@ -73,14 +81,8 @@ medbridge_fastapi/
 
 ---
 
-## How to integrate the frontend
-
-1. Copy your `medbridge.html` into `templates/index.html`
-2. Add `<script src="/static/app.js"></script>` before `</body>`
-3. Remove the inline `<script>` block from the HTML (all logic is now in `app.js`)
-4. The frontend now calls `/api/*` instead of `api.anthropic.com` directly
-
 ---
+
 
 ## Why FastAPI over Flask?
 

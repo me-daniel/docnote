@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedBridge</title>
+<title>DoctorTalk</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -208,8 +208,8 @@ canvas.hmap{display:block;width:100%;border-radius:3px}
 
 <nav>
   <div class="nav-logo">
-    <div class="nav-mark">Mb</div>
-    <div class="nav-name">MedBridge</div>
+    <div class="nav-mark">Dt</div>
+    <div class="nav-name">DoctorTalk</div>
   </div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="go('writer')">✍ Writer</button>
@@ -474,7 +474,7 @@ async function doSimplify() {
     hCtx=`\n\nPATIENT HISTORY: Previously flagged difficult words: ${top||'none'}. Avg comprehension: ${ac}%. ${ac<65?'Struggles significantly — use simplest possible language.':ac<78?'Moderate difficulty — keep sentences short.':'Understands reasonably — ensure clarity.'}`;
   }
   const lv=LV[selLv];
-  const sys=`You are MedBridge, a health literacy specialist trained on the DEFT corpus. Rewrite clinical text for a patient at level: ${lv.lbl}.\n\nRULES:\n1. Preserve ALL clinical meaning.\n2. Use ${lv.desc}. Max sentence: ${selLv<=2?14:selLv<=3?19:24} words.\n3. Active voice. Short paragraphs.\n4. DEFT: dyspnea→shortness of breath, myocardial infarction→heart attack, hypertension→high blood pressure, diuretic→water pill, PO→by mouth, QD/OD→once a day, BID→twice a day, nebulization→breathing treatment, FEV1/FVC→breathing test, COPD→COPD (long-term lung condition), corticosteroid→steroid medicine, SpO2→blood oxygen level, ejection fraction→how well your heart pumps, acute exacerbation→sudden worsening.\n5. Define unavoidable medical terms in parentheses.\n6. Warm, reassuring tone.${hCtx}\n\nReturn ONLY simplified text.`;
+  const sys=`You are DoctorTalk, a health literacy specialist trained on the DEFT corpus. Rewrite clinical text for a patient at level: ${lv.lbl}.\n\nRULES:\n1. Preserve ALL clinical meaning.\n2. Use ${lv.desc}. Max sentence: ${selLv<=2?14:selLv<=3?19:24} words.\n3. Active voice. Short paragraphs.\n4. DEFT: dyspnea→shortness of breath, myocardial infarction→heart attack, hypertension→high blood pressure, diuretic→water pill, PO→by mouth, QD/OD→once a day, BID→twice a day, nebulization→breathing treatment, FEV1/FVC→breathing test, COPD→COPD (long-term lung condition), corticosteroid→steroid medicine, SpO2→blood oxygen level, ejection fraction→how well your heart pumps, acute exacerbation→sudden worsening.\n5. Define unavoidable medical terms in parentheses.\n6. Warm, reassuring tone.${hCtx}\n\nReturn ONLY simplified text.`;
   try {
     const simp = await api([{role:'user',content:txt}], 1000, sys);
     if(simp){
