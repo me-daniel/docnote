@@ -568,7 +568,7 @@ async function loadAiSum(pid) {
     const data = await API.post("/analytics-summary", { patient_id: pid });
     document.getElementById("aiSum").innerHTML = `
       <div class="ai-sum-t">✦ AI Profile</div>
-      <div style="margin-bottom:8px;font-size:11px;color:rgba(212,208,202,.8);line-height:1.6">${data.summary}</div>
+      <div class="ai-sum-summary">${data.summary}</div>
       ${data.recommendations.map(b => `<div class="sug">${b}</div>`).join("")}`;
   } catch {
     document.getElementById("aiSum").innerHTML = '<div class="ai-sum-t">✦ Summary unavailable</div>';
