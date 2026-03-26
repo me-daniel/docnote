@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -10,7 +12,14 @@ from fastapi.responses import HTMLResponse
 from database import init_db
 from routes import patients_router, sessions_router, analytics_router, ai_router
 
-app = FastAPI(title="MedBridge API", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(title="MedBridge API", version="1.0.0", lifespan=lifespan)
 
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -23,11 +32,12 @@ app.include_router(analytics_router)
 app.include_router(ai_router)
 
 
-@app.on_event("startup")
-def startup():
-    init_db()
-
-
 @app.get("/", response_class=HTMLResponse)
 def serve_app(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

@@ -94,7 +94,6 @@ def _generate(model, prompt: str, system: str = None, max_tokens: int = 1000) ->
         full_prompt,
         generation_config=genai.types.GenerationConfig(
             max_output_tokens=max_tokens,
-            thinking_config=genai.types.ThinkingConfig(thinking_budget=0),
         ),
     )
     return response.text.strip()
