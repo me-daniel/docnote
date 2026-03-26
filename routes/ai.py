@@ -86,6 +86,9 @@ CORE RULES (always apply):
 
 _def_cache = {}
 
+# Simplify can exceed short defaults: plain-language rewrites with definitions often need more tokens than the input.
+SIMPLIFY_MAX_OUTPUT_TOKENS = 8192
+
 
 def _generate(model, prompt: str, system: str = None, max_tokens: int = 1000) -> str:
     """Unified helper to call Gemini and return text."""
@@ -126,7 +129,12 @@ def simplify_text(req: SimplifyRequest, db: DBSession = Depends(get_db)):
     system += history_ctx
     system += "\n\nReturn ONLY the rewritten text, no preamble."
 
-    simplified = _generate(_main_model, req.text, system=system, max_tokens=1000)
+    simplified = _generate(
+        _main_model,
+        req.text,
+        system=system,
+        max_tokens=SIMPLIFY_MAX_OUTPUT_TOKENS,
+    )
 
     grade, hard_pct = _readability(simplified)
     return SimplifyResponse(simplified=simplified, grade_level=grade, hard_word_pct=hard_pct)

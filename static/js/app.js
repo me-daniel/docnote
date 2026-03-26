@@ -21,6 +21,40 @@ const API = {
   },
 };
 
+const THEME_KEY = "medbridge-theme";
+
+function syncThemeBtn() {
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+  const t = document.documentElement.getAttribute("data-theme") || "dark";
+  btn.textContent = t === "light" ? "\u{1F319}" : "\u2600";
+  const label = t === "light" ? "Switch to dark mode" : "Switch to light mode";
+  btn.setAttribute("aria-label", label);
+  btn.title = label;
+}
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved === "light" || saved === "dark") {
+    document.documentElement.setAttribute("data-theme", saved);
+  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+    document.documentElement.setAttribute("data-theme", "light");
+  } else {
+    document.documentElement.setAttribute("data-theme", "dark");
+  }
+  syncThemeBtn();
+  const btn = document.getElementById("themeToggle");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-theme") || "dark";
+      const next = cur === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem(THEME_KEY, next);
+      syncThemeBtn();
+    });
+  }
+}
+
 // ── State ──
 let curPt = null, wData = [], flagged = [], selfU = 0;
 let sessStart = null, hoverStart = {}, hoverTimes = {};
@@ -190,6 +224,7 @@ async function doSimplify() {
   const btn = document.getElementById("simpBtn");
   btn.disabled = true; btn.innerHTML = "⟳ Processing...";
   document.getElementById("ldS").style.display = "block";
+  document.getElementById("outPh").style.color = "";
   ["outPh", "outEd", "appRow", "scRow", "appBanner", "simSec"].forEach(id => {
     document.getElementById(id).style.display = "none";
   });
@@ -590,5 +625,6 @@ function drawSessList(ss) {
 
 // ── Init ──
 (async function init() {
+  initTheme();
   await initPsel();
 })();

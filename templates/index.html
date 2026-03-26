@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +17,7 @@
     <button class="nav-tab" onclick="go('analytics')">&#9670; Analytics</button>
   </div>
   <div class="nav-right">
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle light or dark mode" title="Light / dark mode"></button>
     <div class="live"></div>
     <select class="psel" id="psel" onchange="onPChange()"><option value="">— Select patient —</option></select>
     <button class="btn-xs" onclick="addPt()">+ Patient</button>
