@@ -287,7 +287,7 @@ html[data-theme="light"] .def-close{color:rgba(0,0,0,.45)}
 
 /* ─── ANALYTICS ─── */
 /* min-height:0 so .an-body can shrink and scroll inside the viewport (flex default min-height:auto prevents it) */
-#analyticsView{background:var(--an);flex-direction:column;min-height:0}
+#analyticsView{background:var(--an);flex-direction:column;min-height:0;overflow-y:auto;overflow-x:hidden}
 .an-top{background:var(--an2);border-bottom:1px solid var(--ab);padding:0 22px;height:48px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .an-top-t{font-family:'Fraunces',serif;font-size:15px;color:var(--at)}
 .an-ptabs{display:flex;gap:2px;overflow-x:auto;padding:0 22px;border-bottom:1px solid var(--ab);background:var(--an2);flex-shrink:0}
@@ -299,7 +299,7 @@ html[data-theme="light"] .an-body::-webkit-scrollbar-thumb{background:rgba(0,0,0
 html[data-theme="light"] .diff-list::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1)}
 html[data-theme="light"] .w-col::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12)}
 html[data-theme="light"] .sim-bar-strip{background:rgba(0,0,0,.08)}
-.an-body{flex:1;min-height:0;overflow-y:auto;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:13px;align-content:start}
+.an-body{flex:0 0 auto;min-height:auto;overflow:visible;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:13px;align-content:start}
 .an-body::-webkit-scrollbar{width:3px}
 .an-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:2px}
 .an-card{background:var(--an2);border:1px solid var(--ab);border-radius:var(--r);overflow:hidden}
