@@ -340,7 +340,6 @@ function setupPat() {
   wData = []; flagged = []; selfU = 0; hoverStart = {}; hoverTimes = {}; sessStart = Date.now();
   document.getElementById("wsState").style.display = "none";
   document.getElementById("wCont").style.display = "block";
-  document.getElementById("progWrap").style.display = "block";
   document.getElementById("patHint").style.display = "none";
   document.getElementById("checkupWrap").style.display = "none";
   document.getElementById("tyWrap").style.display = "none";
@@ -417,8 +416,6 @@ function simProg() {
   let p = 0;
   const iv = setInterval(() => {
     p = Math.min(p + Math.random() * 6 + 2, 100);
-    document.getElementById("progFill").style.width = Math.round(p) + "%";
-    document.getElementById("progPct").textContent = Math.round(p) + "%";
     if (p >= 100) {
       clearInterval(iv);
       wData.forEach((w, i) => { if (!hoverTimes[i]) hoverTimes[i] = 90 + w.diff * 85 + Math.random() * 110; });
