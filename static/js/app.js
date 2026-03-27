@@ -80,6 +80,7 @@ const MED = new Set(["cardiomyopathy","ejection","fraction","myocardial","infarc
   "amoxicillin","clavulanate","exacerbation","corticosteroid","antibiotic","pulmonology","ventilatory",
   "systolic","diastolic","furosemide","lisinopril","diuretic","echocardiography","hypertension",
   "arrhythmia","atherosclerosis","angioplasty","tachycardia","bradycardia","thrombosis","embolism"]);
+const DIFF_EXCLUDE = new Set(["experiencing", "hospital"]);
 
 // ── Nav ──
 function go(v) {
@@ -262,6 +263,7 @@ async function doSimplify() {
     document.getElementById("hwS").textContent = data.hard_word_pct + "%";
     document.getElementById("hwS").className = "sc-v " + (data.hard_word_pct <= 15 ? "good" : data.hard_word_pct <= 25 ? "warn" : "bad");
     document.getElementById("scRow").style.display = "flex";
+    setApprovePending();
 
     document.getElementById("simSec").style.display = "block";
     await doCheckSim(txt, data.simplified);
@@ -272,6 +274,22 @@ async function doSimplify() {
     document.getElementById("outPh").style.color = "#ff8080";
   }
   btn.disabled = false; btn.innerHTML = "✦ Simplify with AI";
+}
+
+function setApprovePending() {
+  const ab = document.getElementById("appBtn");
+  document.getElementById("appRow").style.display = "flex";
+  ab.disabled = true;
+  ab.style.background = "";
+  ab.textContent = "Checking meaning...";
+}
+
+function setApproveReady() {
+  const ab = document.getElementById("appBtn");
+  document.getElementById("appRow").style.display = "flex";
+  ab.disabled = false;
+  ab.style.background = "";
+  ab.textContent = "✓ Approve & Send to Patient";
 }
 
 async function doCheckSim(orig, simp) {
@@ -311,23 +329,20 @@ function renderSentenceDiff(data) {
       ${p.note ? `<div style="font-size:9px;color:var(--dm);margin-top:3px;font-style:italic">${p.note}</div>` : ""}
     </div>`;
   }).join("");
-  const ab = document.getElementById("appBtn");
-  document.getElementById("appRow").style.display = "flex";
-  if (sc < 68) { ab.disabled = true; ab.textContent = "✗ Cannot Approve"; }
-  else if (sc < 85) { ab.disabled = false; ab.style.background = "#b86e1a"; ab.textContent = "⚠ Approve with Caution"; }
-  else { ab.disabled = false; ab.style.background = ""; ab.textContent = "✓ Approve & Send to Patient"; }
+  setApproveReady();
 }
 
 function renderSimErr() {
   document.getElementById("simHead").className = "sim-head caution";
   document.getElementById("simHead").querySelector(".sim-label").textContent = "Check unavailable";
   document.getElementById("simBody").innerHTML = '<div style="padding:10px 12px;font-size:11px;color:var(--dm)">Review manually before approving.</div>';
-  document.getElementById("appRow").style.display = "flex";
+  setApproveReady();
 }
 
 function doApprove() {
   const txt = document.getElementById("outEd").value.trim(); if (!txt) return;
-  pendingText = txt; pendingPatientId = curPt;
+  pendingText = txt;
+  pendingPatientId = curPt;
   document.getElementById("appRow").style.display = "none";
   document.getElementById("appBanner").style.display = "block";
   setTimeout(() => go("patient"), 700);
@@ -351,6 +366,7 @@ function setupPat() {
 function diffLv(w) {
   const c = w.toLowerCase().replace(/[^a-z]/g, "");
   if (!c || c.length <= 2) return 0;
+  if (DIFF_EXCLUDE.has(c)) return 0;
   if (MED.has(c)) return 4;
   const s = syl(c);
   if (s >= 4) return 3; if (s === 3) return 2; if (s === 2 && c.length > 6) return 1; return 0;

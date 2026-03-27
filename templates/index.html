@@ -101,6 +101,12 @@
         <div class="sc" id="prevCompSc" style="display:none"><div class="sc-l">Patient prev. comp.</div><div class="sc-v" id="prevComp">—</div></div>
       </div>
 
+      <div class="sep">approval</div>
+      <div id="appRow" class="b-row" style="display:none">
+        <button class="btn b-green" id="appBtn" onclick="doApprove()">&#10003; Approve &amp; Send to Patient</button>
+        <button class="btn b-ghost" onclick="doSimplify()">&#8634; Regen</button>
+      </div>
+
       <!-- Semantic similarity — sentence diff view -->
       <div id="simSec" style="display:none">
         <div class="lbl">Meaning check</div>
@@ -117,12 +123,6 @@
             <div class="spin-w"><div class="spinner"></div>Analysing sentences via AI...</div>
           </div>
         </div>
-      </div>
-
-      <div class="sep">approval</div>
-      <div id="appRow" class="b-row" style="display:none">
-        <button class="btn b-green" id="appBtn" onclick="doApprove()">&#10003; Approve &amp; Send to Patient</button>
-        <button class="btn b-ghost" onclick="doSimplify()">&#8634; Regen</button>
       </div>
       <div id="appBanner" style="display:none"><div class="ok-banner">&#10003; Sent to patient — reading session started</div></div>
     </div>
