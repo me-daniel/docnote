@@ -56,16 +56,24 @@ select.psel option{background:var(--sel-opt-bg);color:var(--dt)}
 .btn-xs{background:transparent;border:1px solid var(--db);color:var(--muted-fg-2);font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 10px;border-radius:var(--rs);cursor:pointer;transition:all .15s}
 .btn-xs:hover{border-color:rgba(255,255,255,.2);color:var(--dt)}
 
-.view{display:none;flex:1;overflow:hidden}
+.view{display:none;flex:1;min-height:0;overflow:hidden}
 .view.active{display:flex}
 
 /* ─── WRITER ─── */
-#writerView{background:var(--doc)}
+#writerView{background:var(--doc);--writer-main-min:260px}
 .w-grid{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%}
 .w-col{display:flex;flex-direction:column;height:100%;overflow-y:auto;padding:20px;gap:14px}
 .w-col::-webkit-scrollbar{width:3px}
 .w-col::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
 .w-col+.w-col{border-left:1px solid var(--db)}
+/* Clinical input + simplified output: solid white (light) / dark grey (dark); columns stay --doc */
+#writerView textarea{background:#252525;border-color:rgba(255,255,255,.2)}
+#writerView textarea:focus{background:#2d2d2d;border-color:rgba(91,156,246,.55)}
+#writerView .out-box{background:#252525;border-color:rgba(255,255,255,.2)}
+html[data-theme="light"] #writerView textarea{background:#ffffff;border-color:rgba(0,0,0,.16)}
+html[data-theme="light"] #writerView textarea:focus{background:#ffffff;border-color:rgba(37,99,235,.55)}
+html[data-theme="light"] #writerView .out-box{background:#ffffff;border-color:rgba(0,0,0,.16)}
+html[data-theme="light"] #writerView .out-edit::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15)}
 .col-role{font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--da);margin-bottom:2px}
 .col-title{font-family:'Fraunces',serif;font-size:17px;letter-spacing:-.3px;color:var(--dt)}
 .lbl{font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--dm);margin-bottom:5px}
@@ -90,24 +98,30 @@ html[data-theme="light"] .pb.nw{background:rgba(0,0,0,.06);color:var(--muted-fg-
 .pred-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
 .pred-lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--aa);opacity:.92;width:100%;margin-bottom:3px}
 .pred{font-size:9px;padding:2px 8px;border-radius:9px;background:rgba(244,162,97,.2);color:var(--dw);border:1px solid rgba(244,162,97,.35);font-family:'DM Mono',monospace;font-weight:600;cursor:default}
-.pred.pf{background:rgba(224,60,60,.2);color:#ffb4b4;border-color:rgba(224,60,60,.4)}
+.pred.pf{background:rgba(224,60,60,.18);color:#7f1d1d;border-color:rgba(185,28,28,.45)}
+html[data-theme="light"] .pred.pf{background:rgba(254,226,226,.95);color:#991b1b;border-color:rgba(185,28,28,.5)}
 html[data-theme="light"] .ai-ins{background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.28);box-shadow:none}
 html[data-theme="light"] .ai-ins-body{color:#000000}
 html[data-theme="light"] .pred-lbl{color:#000000;opacity:.75}
 
-/* Challenging words panel on writer side */
+/* Challenging words panel on writer side — grid so every bar starts at the same x (fixed word + badge columns) */
 .chal-panel{background:rgba(255,255,255,.03);border:1px solid var(--db);border-radius:var(--rs);padding:10px 12px}
-.chal-word-row{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.chal-word-row{display:grid;grid-template-columns:minmax(0,118px) minmax(48px,1fr) 84px 36px;align-items:center;column-gap:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)}
 .chal-word-row:last-child{border-bottom:none}
-.chal-word{font-size:11px;font-weight:600;font-family:'DM Mono',monospace;color:var(--dt);flex:1}
-.chal-bar-bg{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
-.chal-bar-fg{height:100%;border-radius:2px}
-.chal-n{font-size:9px;font-family:'DM Mono',monospace;color:var(--dm);min-width:28px;text-align:right}
-.chal-badge{font-size:8px;padding:1px 5px;border-radius:6px;font-weight:700;flex-shrink:0}
-.chal-badge.fl{background:rgba(224,60,60,.18);color:#ff9090;border:1px solid rgba(224,60,60,.25)}
+.chal-word{font-size:11px;font-weight:600;font-family:'DM Mono',monospace;color:var(--dt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.chal-bar-bg{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;min-width:0}
+.chal-bar-fg{height:100%;border-radius:3px}
+.chal-badge-cell{display:flex;align-items:center;justify-content:flex-start;min-height:18px}
+.chal-n{font-size:9px;font-family:'DM Mono',monospace;color:var(--dm);text-align:right}
+.chal-badge{font-size:8px;padding:1px 5px;border-radius:6px;font-weight:700;white-space:nowrap}
+.chal-badge.fl{background:rgba(224,60,60,.18);color:#7f1d1d;border:1px solid rgba(185,28,28,.45)}
+html[data-theme="light"] .chal-badge.fl{background:rgba(254,226,226,.95);color:#991b1b;border-color:rgba(185,28,28,.5)}
 .chal-badge.pr{background:rgba(244,162,97,.15);color:var(--dw);border:1px solid rgba(244,162,97,.22)}
+html[data-theme="light"] .chal-panel{background:rgba(0,0,0,.03);border-color:var(--db)}
+html[data-theme="light"] .chal-word-row{border-bottom-color:rgba(0,0,0,.06)}
+html[data-theme="light"] .chal-bar-bg{background:rgba(0,0,0,.08)}
 
-textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--db);border-radius:var(--rs);color:var(--dt);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.65;padding:10px 12px;resize:vertical;min-height:260px;outline:none;transition:border-color .2s}
+textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--db);border-radius:var(--rs);color:var(--dt);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.65;padding:10px 12px;resize:vertical;min-height:var(--writer-main-min,260px);outline:none;transition:border-color .2s}
 textarea:focus{border-color:rgba(91,156,246,.45);background:rgba(255,255,255,.06)}
 textarea::placeholder{color:var(--placeholder-fg)}
 
@@ -139,8 +153,9 @@ html[data-theme="light"] .b-ghost:hover{border-color:rgba(0,0,0,.2)}
 .ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}
 @keyframes ld{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}
 .ld-h{font-size:10px;color:var(--dm);margin-top:2px}
-.out-box{background:rgba(255,255,255,.03);border:1px solid var(--db);border-radius:var(--rs);padding:11px 12px;min-height:200px}
-.out-edit{width:100%;background:transparent;border:none;color:var(--out-edit-fg);font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.7;resize:vertical;outline:none;min-height:160px;max-height:90vh;overflow-y:auto}
+/* Match clinical input (#medIn): same outer min-height; inner clears out-box vertical padding (11px*2) */
+.out-box{background:rgba(255,255,255,.03);border:1px solid var(--db);border-radius:var(--rs);padding:11px 12px;min-height:var(--writer-main-min,260px)}
+.out-edit{width:100%;background:transparent;border:none;color:var(--out-edit-fg);font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.7;resize:vertical;outline:none;min-height:calc(var(--writer-main-min, 260px) - 22px);max-height:90vh;overflow-y:auto}
 .out-edit::-webkit-scrollbar{width:3px}
 .out-edit::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
 .out-ph{font-size:11px;color:var(--out-ph-fg);line-height:1.6}
@@ -245,7 +260,8 @@ html[data-theme="light"] .def-close{color:rgba(0,0,0,.45)}
 .pat-info-t{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--pa);margin-bottom:3px}
 
 /* ─── ANALYTICS ─── */
-#analyticsView{background:var(--an);flex-direction:column}
+/* min-height:0 so .an-body can shrink and scroll inside the viewport (flex default min-height:auto prevents it) */
+#analyticsView{background:var(--an);flex-direction:column;min-height:0}
 .an-top{background:var(--an2);border-bottom:1px solid var(--ab);padding:0 22px;height:48px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .an-top-t{font-family:'Fraunces',serif;font-size:15px;color:var(--at)}
 .an-ptabs{display:flex;gap:2px;overflow-x:auto;padding:0 22px;border-bottom:1px solid var(--ab);background:var(--an2);flex-shrink:0}
@@ -257,7 +273,7 @@ html[data-theme="light"] .an-body::-webkit-scrollbar-thumb{background:rgba(0,0,0
 html[data-theme="light"] .diff-list::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1)}
 html[data-theme="light"] .w-col::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12)}
 html[data-theme="light"] .sim-bar-strip{background:rgba(0,0,0,.08)}
-.an-body{flex:1;overflow-y:auto;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:13px;align-content:start}
+.an-body{flex:1;min-height:0;overflow-y:auto;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:13px;align-content:start}
 .an-body::-webkit-scrollbar{width:3px}
 .an-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.07);border-radius:2px}
 .an-card{background:var(--an2);border:1px solid var(--ab);border-radius:var(--r);overflow:hidden}
@@ -265,6 +281,9 @@ html[data-theme="light"] .sim-bar-strip{background:rgba(0,0,0,.08)}
 .an-ch{padding:9px 13px;border-bottom:1px solid var(--ab);display:flex;align-items:center;justify-content:space-between}
 .an-ct{font-size:8px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--am)}
 .an-cb{padding:12px 13px}
+/* Same inner padding + left gutter as comprehension chart plot origin (JS AN_CHART_PAD.l) */
+.an-cb-chart{padding:8px 13px 12px 13px}
+.freq-list{padding-left:28px}
 
 /* Simplified overview — 3 key metrics only */
 .an-3met{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}

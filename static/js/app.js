@@ -169,11 +169,14 @@ async function loadChalWords(patientId) {
     document.getElementById("chalPanel").innerHTML = words.map((w, i) => {
       const pct = Math.round(w.score / max * 100);
       const c = i === 0 ? colors[0] : i <= 1 ? colors[1] : i <= 3 ? colors[2] : colors[3];
+      const badge =
+        w.flagged ? '<span class="chal-badge fl">flagged</span>'
+        : w.slow_read ? '<span class="chal-badge pr">slow read</span>'
+        : "";
       return `<div class="chal-word-row">
-        <div class="chal-word">${w.word}</div>
+        <div class="chal-word" title="${w.word}">${w.word}</div>
         <div class="chal-bar-bg"><div class="chal-bar-fg" style="width:${pct}%;background:${c}"></div></div>
-        ${w.flagged ? '<span class="chal-badge fl">flagged</span>' : ""}
-        ${w.slow_read && !w.flagged ? '<span class="chal-badge pr">slow read</span>' : ""}
+        <div class="chal-badge-cell">${badge}</div>
         <div class="chal-n">${w.score}</div>
       </div>`;
     }).join("");
@@ -518,15 +521,15 @@ async function renderPtAn(pid) {
   </div>
   <div class="an-card">
     <div class="an-ch"><span class="an-ct">Comprehension over sessions</span></div>
-    <div class="an-cb" style="padding:8px"><canvas class="trend" id="trC" height="110"></canvas></div>
+    <div class="an-cb an-cb-chart"><canvas class="trend" id="trC" height="110"></canvas></div>
   </div>
   <div class="an-card">
     <div class="an-ch"><span class="an-ct">Words patient flagged as difficult</span></div>
-    <div class="an-cb"><div class="freq-list" id="flList">${topF.length?"":"<div style='font-size:10px;color:var(--am)'>No words flagged yet.</div>"}</div></div>
+    <div class="an-cb an-cb-chart"><div class="freq-list" id="flList">${topF.length?"":"<div style='font-size:10px;color:var(--am)'>No words flagged yet.</div>"}</div></div>
   </div>
   <div class="an-card">
     <div class="an-ch"><span class="an-ct">Fixation time by word</span><span style="font-size:8px;color:var(--am);font-family:'DM Mono',monospace">eye tracking proxy</span></div>
-    <div class="an-cb" style="padding:8px"><canvas class="hmap" id="hmC" height="85"></canvas></div>
+    <div class="an-cb an-cb-chart"><canvas class="hmap" id="hmC" height="85"></canvas></div>
   </div>
   <div class="an-card">
     <div class="an-ch"><span class="an-ct">Session history</span></div>
@@ -575,12 +578,15 @@ async function loadAiSum(pid) {
   }
 }
 
+// Shared plot inset with drawHmap (matches Y-axis gutter in drawTrend)
+const AN_CHART_PAD = { t: 12, r: 12, b: 20, l: 28 };
+
 function drawTrend(ss) {
   const cv = document.getElementById("trC"); if (!cv) return;
   const dpr = window.devicePixelRatio || 1, W = cv.parentElement.clientWidth;
   cv.width = W * dpr; cv.height = 110 * dpr; cv.style.width = W + "px"; cv.style.height = "110px";
   const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
-  const pad = { t: 12, r: 12, b: 20, l: 28 }, cw = W - pad.l - pad.r, ch = 110 - pad.t - pad.b;
+  const pad = { ...AN_CHART_PAD }, cw = W - pad.l - pad.r, ch = 110 - pad.t - pad.b;
   const scores = ss.map(s => s.comprehension_score || 0);
   ctx.strokeStyle = "rgba(255,255,255,.05)"; ctx.lineWidth = 0.5;
   [0, 25, 50, 75, 100].forEach(v => {
@@ -608,10 +614,13 @@ function drawHmap(topH) {
   const dpr = window.devicePixelRatio || 1, W = cv.parentElement.clientWidth;
   cv.width = W * dpr; cv.height = 85 * dpr; cv.style.width = W + "px"; cv.style.height = "85px";
   const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
+  const padL = AN_CHART_PAD.l, padR = AN_CHART_PAD.r;
   ctx.fillStyle = "rgba(255,255,255,.02)"; ctx.fillRect(0, 0, W, 85);
-  const max = topH[0][1], bw = Math.floor((W - 16) / topH.length) - 3;
+  const max = topH[0][1], n = topH.length, gap = 3;
+  const innerW = W - padL - padR - (n - 1) * gap;
+  const bw = Math.max(4, Math.floor(innerW / n));
   topH.forEach(([w, t], i) => {
-    const x = 8 + i * (bw + 3), int = t / max, bh = 10 + int * 55;
+    const x = padL + i * (bw + gap), int = t / max, bh = 10 + int * 55;
     ctx.fillStyle = `rgba(${Math.round(int*210)},${Math.round((1-int)*150)},70,${0.4+int*.5})`;
     ctx.beginPath(); ctx.roundRect(x, 85 - bh - 16, bw, bh, 2); ctx.fill();
     ctx.fillStyle = "rgba(212,208,202,.5)"; ctx.font = "7px DM Mono,monospace"; ctx.textAlign = "center";
