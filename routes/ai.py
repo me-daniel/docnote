@@ -19,14 +19,12 @@ router = APIRouter(prefix="/api", tags=["ai"])
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Models (primary + optional fallback when the API returns 429 / rate limit).
-# Lite fallback uses the same Flash Lite preview id as define/insight routes (v1beta exposes no gemini-3.0-flash-lite-preview).
-MODEL_MAIN = "gemini-3-flash-preview"
-MODEL_LITE = "gemini-3.1-flash-lite-preview"
+# Default model + fallback when the API returns 429 / rate limit (swap roles here if needed).
+MODEL_DEFAULT = "gemini-3.1-flash-lite-preview"
+MODEL_FALLBACK = "gemini-3-flash-preview"
 
-_main_model = genai.GenerativeModel(MODEL_MAIN)
-_light_model = genai.GenerativeModel(MODEL_LITE)
-_fallback_429_model = _light_model
+_default_model = genai.GenerativeModel(MODEL_DEFAULT)
+_fallback_model = genai.GenerativeModel(MODEL_FALLBACK)
 
 LEVEL_RULES = {
     1: """LEVEL-SPECIFIC RULES:
@@ -140,6 +138,7 @@ def _generate(
     max_tokens: int = 1000,
     *,
     rate_limit_fallback: genai.GenerativeModel | None = None,
+    temperature: float | None = None,
 ) -> str:
     """Unified helper to call Gemini and return text.
 
@@ -147,7 +146,10 @@ def _generate(
     the same prompt is retried once on that model.
     """
     full_prompt = f"{system}\n\n{prompt}" if system else prompt
-    config = genai.types.GenerationConfig(max_output_tokens=max_tokens)
+    cfg_kw = {"max_output_tokens": max_tokens}
+    if temperature is not None:
+        cfg_kw["temperature"] = temperature
+    config = genai.types.GenerationConfig(**cfg_kw)
 
     def _call(m):
         response = m.generate_content(full_prompt, generation_config=config)
@@ -196,11 +198,11 @@ def simplify_text(req: SimplifyRequest, db: DBSession = Depends(get_db)):
 
     try:
         simplified = _generate(
-            _main_model,
+            _default_model,
             req.text,
             system=system,
             max_tokens=SIMPLIFY_MAX_OUTPUT_TOKENS,
-            rate_limit_fallback=_fallback_429_model,
+            rate_limit_fallback=_fallback_model,
         )
     except ValueError as e:
         raise HTTPException(status_code=502, detail=str(e)) from e
@@ -213,6 +215,8 @@ def simplify_text(req: SimplifyRequest, db: DBSession = Depends(get_db)):
 
 @router.post("/check-similarity")
 def check_similarity(req: SimilarityRequest):
+    # NOTE: Asking for one JSON object per sentence makes output huge on long notes and is very slow.
+    # Cap pairs and prioritize risk — same UI, much faster.
     prompt = f"""You are a medical semantic similarity evaluator.
 
 ORIGINAL:
@@ -221,13 +225,19 @@ ORIGINAL:
 SIMPLIFIED:
 \"\"\"{req.simplified}\"\"\"
 
+IMPORTANT — keep the response small and fast:
+- Set "overall_score" (0-100) and "verdict" (one sentence) for the full texts.
+- "pairs" must contain AT MOST 12 objects total (never one per sentence for long notes).
+- Prioritize: (1) status "lost" or "changed", (2) clinically important lines, (3) at most 4 "good" examples if needed for balance.
+- Each "orig" and "simp" field: one sentence or short clause only; truncate with "…" if very long.
+
 Respond ONLY with valid JSON (no markdown):
 {{
   "overall_score": <0-100>,
   "verdict": "<one sentence>",
   "pairs": [
     {{
-      "orig": "<original sentence>",
+      "orig": "<original sentence or clause>",
       "simp": "<corresponding simplified sentence or empty>",
       "status": "<good|changed|lost>",
       "note": "<brief explanation, max 10 words>"
@@ -236,10 +246,11 @@ Respond ONLY with valid JSON (no markdown):
 }}"""
 
     raw = _generate(
-        _main_model,
+        _default_model,
         prompt,
-        max_tokens=900,
-        rate_limit_fallback=_fallback_429_model,
+        max_tokens=1200,
+        rate_limit_fallback=_fallback_model,
+        temperature=0.2,
     )
     raw = raw.replace("```json", "").replace("```", "").strip()
     return json.loads(raw)
@@ -255,7 +266,12 @@ def define_word(req: DefinitionRequest):
               'Respond ONLY with JSON: '
               '{"pos":"<noun/verb/adjective>","plain":"<plain English, 1-2 sentences, max 30 words, no jargon>"}')
 
-    raw = _generate(_light_model, prompt, max_tokens=120)
+    raw = _generate(
+        _default_model,
+        prompt,
+        max_tokens=120,
+        rate_limit_fallback=_fallback_model,
+    )
     raw = raw.replace("```json", "").replace("```", "").strip()
     result = json.loads(raw)
     _def_cache[req.word] = result
@@ -290,7 +306,12 @@ def patient_insight(req: InsightRequest, db: DBSession = Depends(get_db)):
               f'Then: PREDICT: 6 medical/complex words this patient is likely to struggle with.\n'
               f'Format:\n[2 sentences]\nPREDICT: word1, word2...')
 
-    text = _generate(_light_model, prompt, max_tokens=350)
+    text = _generate(
+        _default_model,
+        prompt,
+        max_tokens=350,
+        rate_limit_fallback=_fallback_model,
+    )
     parts = text.split("PREDICT:")
     insight = parts[0].strip()
     predicted = [w.strip() for w in parts[1].split(",") if w.strip()] if len(parts) > 1 else []
@@ -330,7 +351,12 @@ def analytics_summary(req: InsightRequest, db: DBSession = Depends(get_db)):
               f'Write a concise 2-3 sentence profile: reading ability, difficulty patterns, trajectory.\n'
               f'Then write 3-4 specific writing recommendations. Start each with "→".')
 
-    text = _generate(_light_model, prompt, max_tokens=400)
+    text = _generate(
+        _default_model,
+        prompt,
+        max_tokens=400,
+        rate_limit_fallback=_fallback_model,
+    )
     parts = text.split("→")
     summary = parts[0].strip()
     bullets = [b.strip() for b in parts[1:] if b.strip()]

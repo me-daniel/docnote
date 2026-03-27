@@ -162,11 +162,12 @@ function renderProfile(p) {
 async function loadChalWords(patientId) {
   try {
     const words = await API.get(`/patients/${patientId}/challenging-words`);
+    const filteredWords = words.filter(w => (w.word || "").toLowerCase() !== "copd");
     const chalWrap = document.getElementById("chalWrap");
-    if (!words.length) { chalWrap.style.display = "none"; return; }
-    const max = words[0].score;
+    if (!filteredWords.length) { chalWrap.style.display = "none"; return; }
+    const max = filteredWords[0].score;
     const colors = ["#e03c3c", "#f4894a", "#f4c242", "#52c48a"];
-    document.getElementById("chalPanel").innerHTML = words.map((w, i) => {
+    document.getElementById("chalPanel").innerHTML = filteredWords.map((w, i) => {
       const pct = Math.round(w.score / max * 100);
       const c = i === 0 ? colors[0] : i <= 1 ? colors[1] : i <= 3 ? colors[2] : colors[3];
       const badge =
