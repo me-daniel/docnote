@@ -29,16 +29,16 @@
   <div class="w-grid">
     <!-- LEFT col -->
     <div class="w-col">
-      <div><div class="col-role">&#128104;&#8205;&#9877;&#65039; Clinician — Input</div><div class="col-title">Compose Message</div></div>
+      <div><div class="col-role">Input</div><div class="col-title">Compose</div></div>
 
       <div>
-        <div class="lbl">Clinical notes / instructions</div>
+        <div class="lbl">Clinical text</div>
         <textarea id="medIn" placeholder="Enter clinical text...&#10;&#10;e.g. The patient presents with acute onset dyspnea secondary to left ventricular systolic dysfunction..."></textarea>
       </div>
 
       <!-- Difficulty slider with Auto mode -->
       <div>
-        <div class="lbl" style="margin-bottom:7px">Patient reading difficulty</div>
+        <div class="lbl" style="margin-bottom:6px">Reading level</div>
         <div class="sl-outer">
           <div class="sl-mode-row">
             <button class="sl-mode-btn sl-manual-btn active" id="manualModeBtn" onclick="setMode('manual')">Manual</button>
@@ -61,7 +61,7 @@
       </div>
 
       <div>
-        <div class="lbl">Active patient</div>
+        <div class="lbl">Patient</div>
         <div class="profile-card" id="profileCard"><div style="font-size:11px;color:var(--dm)">Select a patient to load their profile.</div></div>
       </div>
 
@@ -76,17 +76,17 @@
 
       <!-- Challenging words from analytics -->
       <div id="chalWrap" style="display:none">
-        <div class="lbl">Words this patient may find challenging</div>
+        <div class="lbl">Likely challenging words</div>
         <div class="chal-panel" id="chalPanel"></div>
       </div>
     </div>
 
     <!-- RIGHT col -->
     <div class="w-col">
-      <div><div class="col-role">AI Output — Review</div><div class="col-title">Simplified Version</div></div>
+      <div><div class="col-role">Output</div><div class="col-title">Simplified</div></div>
 
       <div>
-        <div class="lbl">Plain language — review &amp; edit</div>
+        <div class="lbl">Plain language</div>
         <div class="out-box" id="outBox">
           <div id="ldS" style="display:none"><div class="ld"><span></span><span></span><span></span></div><div class="ld-h">Simplifying with DEFT corpus + patient history...</div></div>
           <textarea id="outEd" class="out-edit" style="display:none"></textarea>
@@ -103,7 +103,7 @@
 
       <!-- Semantic similarity — sentence diff view -->
       <div id="simSec" style="display:none">
-        <div class="lbl">Sentence-by-sentence meaning check</div>
+        <div class="lbl">Meaning check</div>
         <div class="sim-wrap" id="simWrap">
           <div class="sim-head checking" id="simHead">
             <div>
