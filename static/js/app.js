@@ -64,7 +64,8 @@ function initTheme() {
 let curPt = null, wData = [], flagged = [], selfU = 0;
 let sessStart = null, hoverStart = {}, hoverTimes = {};
 let selLv = 3, autoMode = false, anPt = null;
-let pendingText = null, pendingPatientId = null;
+let pendingText = null, pendingOriginalText = null, pendingSimplifiedText = null, pendingPatientId = null;
+let patientMode = "simplified";
 const defCache = {};
 
 const LV = {
@@ -341,6 +342,9 @@ function renderSimErr() {
 
 function doApprove() {
   const txt = document.getElementById("outEd").value.trim(); if (!txt) return;
+  const orig = document.getElementById("medIn").value.trim();
+  pendingSimplifiedText = txt;
+  pendingOriginalText = orig || txt;
   pendingText = txt;
   pendingPatientId = curPt;
   document.getElementById("appRow").style.display = "none";
@@ -349,18 +353,40 @@ function doApprove() {
 }
 
 // ── Patient ──
-function setupPat() {
-  if (!pendingText) return;
-  const name = document.getElementById("psel").options[document.getElementById("psel").selectedIndex]?.text || "";
-  document.getElementById("patGreet").textContent = name && name !== "— Select patient —" ? `Hello, ${name.split(" ")[0]} 👋` : "Hello 👋";
+function getPatientDisplayText() {
+  if (patientMode === "original") return pendingOriginalText || pendingSimplifiedText || pendingText;
+  return pendingSimplifiedText || pendingText || pendingOriginalText;
+}
+
+function setPatientMode(mode) {
+  patientMode = mode === "original" ? "original" : "simplified";
+  document.getElementById("patModeOrig").classList.toggle("active", patientMode === "original");
+  document.getElementById("patModeSimp").classList.toggle("active", patientMode === "simplified");
+  if (!getPatientDisplayText()) return;
+  renderPatientText();
+}
+
+function renderPatientText() {
+  const text = getPatientDisplayText();
+  if (!text) return;
   wData = []; flagged = []; selfU = 0; hoverStart = {}; hoverTimes = {}; sessStart = Date.now();
   document.getElementById("wsState").style.display = "none";
   document.getElementById("wCont").style.display = "block";
   document.getElementById("patHint").style.display = "none";
   document.getElementById("checkupWrap").style.display = "none";
   document.getElementById("tyWrap").style.display = "none";
-  renderWs(pendingText);
+  renderWs(text);
   simProg();
+}
+
+function setupPat() {
+  if (!(pendingSimplifiedText || pendingText)) return;
+  const name = document.getElementById("psel").options[document.getElementById("psel").selectedIndex]?.text || "";
+  document.getElementById("patGreet").textContent = name && name !== "— Select patient —" ? `Hello, ${name.split(" ")[0]} 👋` : "Hello 👋";
+  const hasOriginal = Boolean((pendingOriginalText || "").trim());
+  document.getElementById("patModeOrig").disabled = !hasOriginal;
+  if (!hasOriginal && patientMode === "original") patientMode = "simplified";
+  setPatientMode(patientMode);
 }
 
 function diffLv(w) {
@@ -478,7 +504,7 @@ async function saveSession() {
       word_frequencies: wf,
       hover_times: ht,
     });
-    pendingText = null; pendingPatientId = null;
+    pendingText = null; pendingOriginalText = null; pendingSimplifiedText = null; pendingPatientId = null;
   } catch (e) { console.error("Failed to save session:", e); }
 }
 

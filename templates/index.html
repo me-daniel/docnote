@@ -133,7 +133,13 @@
 <div class="view" id="patientView">
   <div class="pat-top">
     <div><div class="pat-greet" id="patGreet">Hello &#128075;</div><div class="pat-sub">Here is your health information from your doctor.</div></div>
-    <div style="font-size:10px;color:var(--pm);font-weight:600" id="patSessLbl"></div>
+    <div class="pat-right">
+      <div class="pat-mode-switch" id="patModeSwitch">
+        <button class="pat-mode-btn" id="patModeOrig" onclick="setPatientMode('original')">Original</button>
+        <button class="pat-mode-btn active" id="patModeSimp" onclick="setPatientMode('simplified')">Simplified</button>
+      </div>
+      <div style="font-size:10px;color:var(--pm);font-weight:600" id="patSessLbl"></div>
+    </div>
   </div>
   <div class="pat-body">
     <div>
